@@ -1,104 +1,151 @@
-![Miniature](https://user-images.githubusercontent.com/43630417/167732465-f02c0dea-48db-4e23-ab26-90ca69115251.png)
-# Chat App using React Native Expo and Firebase
+Aquí tienes el archivo `README.md` completo y formateado para que lo uses directamente en tu repositorio de GitHub:
 
-- See a video tutorial showing how to clone this repository 👉🏼 [https://www.youtube.com/watch?v=iHrTQDHq1WI&t=385s](https://www.youtube.com/watch?v=iHrTQDHq1WI&t=385s)
+```markdown
+# API Node.js - Despliegue en Azure App Service
 
-- Check out the Tutorial 👉🏼 [https://www.youtube.com/watch?v=B6bKBiljKxU&t=323s](https://www.youtube.com/watch?v=B6bKBiljKxU&t=323s)
+Este proyecto es una API construida con Node.js que permite la autenticación de usuarios, restablecimiento de contraseñas, manejo de referidos, entre otros. El proyecto está diseñado para ser desplegado en **Azure App Service** y conectarse a una base de datos **Azure SQL**.
 
-## How to clone
+## Requisitos previos
 
-Clone the repo
+- [Azure CLI](https://docs.microsoft.com/es-es/cli/azure/install-azure-cli) instalado
+- Cuenta de [Azure](https://portal.azure.com) activa
+- [Node.js](https://nodejs.org/) y [npm](https://www.npmjs.com/) instalados
+- Base de datos **Azure SQL** configurada
 
-```
-git clone https://github.com/betomoedano/ChatApp.git
-```
+## Clonar el repositorio
 
-cd into the just created project and install dependencies with yarn
+1. Abre una terminal y clona este repositorio en tu máquina local:
 
-```
-cd ChatApp && yarn
-```
+   ```bash
+   git clone https://github.com/tu-usuario/tu-repositorio.git
+   ```
 
-Add your firebase backend config in the `firebase.js` file
+2. Entra en el directorio del proyecto:
 
-```
-const firebaseConfig = {
-  apiKey: Constants.expoConfig.extra.apiKey,
-  authDomain: Constants.expoConfig.extra.authDomain,
-  projectId: Constants.expoConfig.extra.projectId,
-  storageBucket: Constants.expoConfig.extra.storageBucket,
-  messagingSenderId: Constants.expoConfig.extra.messagingSenderId,
-  appId: Constants.expoConfig.extra.appId,
-  databaseURL: Constants.expoConfig.extra.databaseURL,
-  //   @deprecated is deprecated Constants.manifest
-};
-```
+   ```bash
+   cd tu-repositorio
+   ```
 
-Run the project
+## Instalación de dependencias
 
-```
-expo start
+Instala las dependencias necesarias para el proyecto con el siguiente comando:
+
+```bash
+npm install
 ```
 
-Congratulations 🎉 Now you have a functional Chat App working locally
+Esto instalará las librerías como `express`, `jsonwebtoken`, `bcryptjs`, `nodemailer`, y `mssql`.
 
-Subscribe to [my channel](https://youtube.com/c/BetoMoedano)
+## Configuración
 
-## Known issues
+1. Crea un archivo `.env` en la raíz del proyecto con las siguientes variables de entorno:
 
-Expo SDK and libreries are always updating their versions and deprecating others. before installing the libreries run.
+   ```bash
+   DB_USER=your_db_user
+   DB_PASSWORD=your_db_password
+   DB_SERVER=your_db_server
+   DB_NAME=your_db_name
+   JWT_SECRET=your_jwt_secret
+   GMAIL_USER=your_gmail_user
+   GMAIL_PASSWORD=your_gmail_password
+   ```
 
-```
-yarn add expo@latest
-```
+   Asegúrate de reemplazar los valores con tus credenciales correctas.
 
-Next you can run:
+## Despliegue en Azure App Service
 
-```
-    npx expo install --fix
-```
+### 1. Iniciar sesión en Azure CLI
 
-Older versions of `react-native-gifted-chat` have a some issues. make sure you have the latest.
+Primero, asegúrate de estar autenticado en Azure:
 
-```
-npx expo install react-native-gifted-chat@latest
-```
-
-Expo will show you what dependencies need to be updated. Install the dependencies expo suggest you. It is possible that there is cache and you have to run.
-
-```
-yarn start --reset-cache
+```bash
+az login
 ```
 
-## Support My Work
+Esto abrirá una ventana del navegador para iniciar sesión con tu cuenta de Azure.
 
-If you find this project helpful and want to support my work, the best way is by enrolling in one of my courses:
+### 2. Crear un App Service en Azure
 
-- **React Native Course**: [codewithbeto.dev/learn](https://codewithbeto.dev/learn)
-- **React with TypeScript Course**: [codewithbeto.dev/learnReact](https://codewithbeto.dev/learnReact)
-- **Git & GitHub Course**: [codewithbeto.dev/learnGit](https://codewithbeto.dev/learnGit)
+1. **Crear un plan de App Service**:
 
-For other ways to support my work, please consider:
+   ```bash
+   az appservice plan create --name MiPlanDeApp --resource-group MiGrupoDeRecursos --sku B1 --is-linux
+   ```
 
-- **Become a Code with Beto channel member**: [YouTube Membership](https://www.youtube.com/channel/UCh247h68vszOMA_OWpGEa5g/join)
-- **GitHub Sponsors**: [Sponsor Me](https://github.com/sponsors/betomoedano)
+2. **Crear la aplicación web**:
 
-You can also support me by using my referral links:
+   ```bash
+   az webapp create --resource-group MiGrupoDeRecursos --plan MiPlanDeApp --name MiAppNode --runtime "NODE|14-lts"
+   ```
 
-- Get an exclusive 40% discount on CodeCrafters: [Referral Link](https://app.codecrafters.io/join?via=betomoedano)
-- Get a 10% discount on Vexo Analytics with code "BETO10": [Vexo](https://vexo.co)
-- Sign up for Robinhood and we'll both pick our own gift stock 🎁: [Robinhood](https://join.robinhood.com/albertm-8254f5)
-- Get 500 MB of Dropbox storage: [Dropbox](https://www.dropbox.com/referrals/AAC52bYrrPqp8FZ7K5gxa-I74wecLpiQuB4?src=global9)
+Esto creará una aplicación en Linux con Node.js 14.x.
 
-Your support helps me keep creating amazing projects!
+### 3. Configurar variables de entorno en Azure
 
+Para que la aplicación tenga acceso a las credenciales y otros valores necesarios, agrega las variables de entorno en Azure:
 
-## Connect with Me
+```bash
+az webapp config appsettings set --resource-group MiGrupoDeRecursos --name MiAppNode --settings DB_USER=your_db_user DB_PASSWORD=your_db_password DB_SERVER=your_db_server DB_NAME=your_db_name JWT_SECRET=your_jwt_secret GMAIL_USER=your_gmail_user GMAIL_PASSWORD=your_gmail_password
+```
 
-- **Website**: [Code With Beto](https://codewithbeto.dev)
-- **X (formerly Twitter)**: [@betomoedano](https://x.com/betomoedano)
-- **GitHub**: [betomoedano](https://github.com/betomoedano)
-- **LinkedIn**: [Beto Moedano](https://www.linkedin.com/in/betomoedano/)
-- **Discord**: [Join Our Community](https://discord.com/invite/G2RnuUD8)
-- **Medium**: [@betomoedano01](https://medium.com/@betomoedano01)
-- **Figma**: [betomoedano](https://www.figma.com/@betomoedano)
+### 4. Subir el código a Azure
+
+Desde la raíz de tu proyecto (donde está `server.js`), ejecuta el siguiente comando para desplegar la aplicación en Azure:
+
+```bash
+az webapp up --name MiAppNode --resource-group MiGrupoDeRecursos --runtime "NODE|14-lts"
+```
+
+### 5. Conectar tu App Service a la base de datos de Azure SQL
+
+1. Ve a **Azure Portal**: [Azure Portal](https://portal.azure.com).
+2. Dirígete a tu base de datos **Azure SQL**.
+3. Entra a la opción **Firewalls y redes virtuales**.
+4. Agrega las IPs necesarias para que el App Service pueda acceder a la base de datos.
+
+### 6. Probar la aplicación
+
+Una vez que la aplicación esté desplegada, puedes acceder a la URL pública de tu API. Encuentra esta URL ejecutando:
+
+```bash
+az webapp show --resource-group MiGrupoDeRecursos --name MiAppNode --query "defaultHostName" -o tsv
+```
+
+Ahora puedes probar tus endpoints (`/login`, `/signup`, etc.) desde un navegador o una herramienta como Postman usando la URL proporcionada.
+
+## Ejemplo de uso de la API
+
+### Registro de usuario
+
+```bash
+POST /signup
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "johndoe@example.com",
+  "password": "securepassword",
+  "role": "user"
+}
+```
+
+### Inicio de sesión
+
+```bash
+POST /login
+Content-Type: application/json
+
+{
+  "email": "johndoe@example.com",
+  "password": "securepassword"
+}
+```
+
+---
+
+## Recursos útiles
+
+- [Documentación de Azure App Service](https://docs.microsoft.com/azure/app-service/)
+- [Documentación de Azure SQL Database](https://docs.microsoft.com/azure/sql-database/)
+- [Azure CLI](https://docs.microsoft.com/cli/azure/)
+
