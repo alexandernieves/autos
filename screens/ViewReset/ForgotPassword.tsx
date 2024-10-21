@@ -75,8 +75,8 @@ export default function ForgotPassword({ navigation }: ForgotPasswordProps) {
             )}
             
             <ButtonContainer>
-              <NavButton onPress={() => setIsCodeSent(false)}>
-                <Ionicons name="arrow-back" size={30} color="#002368" />
+              <NavButton onPress={() => navigation.navigate('Login')}>
+                <Ionicons name="arrow-back" size={30} color="#fff" />
               </NavButton>
               <NavButton onPress={handleResetPassword}>
                 <Ionicons name="arrow-forward" size={30} color="#fff" />

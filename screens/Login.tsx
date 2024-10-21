@@ -386,10 +386,10 @@ export default function Login({ navigation }: LoginProps) {
 
         {isLogin ? (
           <>
-            <SocialButton onPress={() => promptAsync()}>
+            {/* <SocialButton onPress={() => promptAsync()}>
               <Image source={googleIcon} style={{ width: 20, height: 20, marginRight: 5 }} />
               <Text style={{ fontSize: 14 }}>Continue with Google</Text>
-            </SocialButton>
+            </SocialButton> */}
 
             <Animated.View style={{ transform: [{ translateX: emailShakeAnimation }] }}>
               <InputContainer style={emailError && { borderColor: 'red', borderWidth: 1.5 }}>

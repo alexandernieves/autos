@@ -46,7 +46,7 @@ export default function ConfirmCode({ navigation }: ConfirmCodeProps) {
             <Ionicons name="arrow-back" size={30} color="#002368" />
           </NavButton>
           <NavButton onPress={handleConfirmCode}>
-            <Ionicons name="arrow-forward" size={30} color="#fff" />
+            <Ionicons name="arrow-back" size={30} color="#fff" />
           </NavButton>
         </ButtonContainer>
       </Container>
