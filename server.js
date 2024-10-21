@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 const sql = require('mssql'); // Reemplazar mysql por mssql
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
@@ -511,21 +511,6 @@ app.get('/test-connection', async (req, res) => {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Ruta protegida solo para administradores
 app.get('/admin', (req, res) => {
   const token = req.headers['authorization'];
@@ -550,5 +535,6 @@ app.get('/admin', (req, res) => {
 
 // Iniciar el servidor
 app.listen(port, () => {
-  console.log(`Servidor escuchando en http://localhost:${port}`);
+  console.log(`Servidor escuchando en el puerto ${port}`);
 });
+
