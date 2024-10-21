@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ScrollView, View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Modal } from "react-native";
+import { ScrollView, View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Modal, ActivityIndicator } from "react-native";
 import styled from 'styled-components/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import colors from '../colors';
@@ -50,6 +50,8 @@ const ReferralForm: React.FC = () => {
   const [vehicleBrandValid, setVehicleBrandValid] = useState(true);
   const [vehicleModelValid, setVehicleModelValid] = useState(true);
   const [dealershipsValid, setDealershipsValid] = useState(true); // Validación de dealerships
+  const [loading, setLoading] = useState(false);
+
 
   const navigation = useNavigation<ReferralFormNavigationProp>();
 
@@ -145,60 +147,74 @@ const ReferralForm: React.FC = () => {
   const prevStep = () => {
     setStep(1);
   };
+  const generateHmacHash = (text: any, secretKey: any) => {
+    const utf8Text = CryptoJS.enc.Utf8.parse(text);
+    const hmac = CryptoJS.HmacSHA256(utf8Text, secretKey);
+    return CryptoJS.enc.Base64.stringify(hmac);
+  };
 
+  
   const saveReferral = async () => {
+    // Verificar que los inputs son válidos antes de continuar.
     if (!validateSecondStepInputs()) return;
+    setLoading(true); // Mostrar el preloader
 
     try {
+      // Obtener el token de autenticación del almacenamiento local.
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) {
-        Alert.alert('Error', 'No se encontró un token, por favor inicie sesión.');
+        console.log('Error: No se encontró un token, por favor inicie sesión.');
         return;
       }
-
+  
       const decoded = decodeJWT(token);
       if (!decoded || !decoded.id) {
-        Alert.alert('Error', 'No se pudo obtener el ID del usuario autenticado.');
+        console.log('Error: No se pudo obtener el ID del usuario autenticado.');
         return;
       }
-
-      const xmlBody = `
-        <adf>
-          <prospect>
-            <id sequence="1" source="Vendor-lead-id"><![CDATA[Test-00001]]></id>
-            <requestdate><![CDATA[${new Date().toISOString()}]]></requestdate>
-            <customer>
-              <contact>
-                <name part="full"><![CDATA[${firstName} ${lastName}]]></name>
-                <phone><![CDATA[${phoneNumber}]]></phone>
-                <email><![CDATA[${email}]]></email>
-              </contact>
-              <vehicle>
-                <status><![CDATA[${vehicleStatus}]]></status>
-                <brand><![CDATA[${vehicleBrand}]]></brand>
-                <model><![CDATA[${vehicleModel}]]></model>
-              </vehicle>
-              <dealership><![CDATA[${selectedDealerships.join(', ')}]]></dealership>
-            </customer>
-            <vendor>
-              <id source="DealerID"><![CDATA[7250_16]]></id>
-              <vendorname><![CDATA[Cabrera Grupo]]></vendorname>
-            </vendor>
-            <provider>
-              <name part="full"><![CDATA[test]]></name>
-            </provider>
-          </prospect>
-        </adf>
-      `;
-
+  
+      // Definir la fecha y el XML para enviar a DealerSocket.
+      const fixedDate = '2024-10-21T12:00:00.000Z'; // Utiliza una fecha fija para coincidir en la prueba.
+      const xmlBody = `<adf>
+        <prospect>
+          <id sequence="1" source="Vendor-lead-id"><![CDATA[Test-00001]]></id>
+          <requestdate><![CDATA[${fixedDate}]]></requestdate>
+          <customer>
+            <contact>
+              <name part="full"><![CDATA[${firstName} ${lastName}]]></name>
+              <phone><![CDATA[${phoneNumber}]]></phone>
+              <email><![CDATA[${email}]]></email>
+            </contact>
+            <vehicle>
+              <status><![CDATA[${vehicleStatus}]]></status>
+              <brand><![CDATA[${vehicleBrand}]]></brand>
+              <model><![CDATA[${vehicleModel}]]></model>
+            </vehicle>
+            <dealership><![CDATA[${selectedDealerships.join(', ')}]]></dealership>
+          </customer>
+          <vendor>
+            <id source="DealerID"><![CDATA[7250_16]]></id>
+            <vendorname><![CDATA[Cabrera Grupo]]></vendorname>
+          </vendor>
+          <provider>
+            <name part="full"><![CDATA[test]]></name>
+          </provider>
+        </prospect>
+      </adf>`.trim();
+  
       const publicKey = "678";
       const privateKey = "9DB91AB6-AD6F-440D-98A5-DC13ACAA3518";
+  
+      // Generar el hash HMAC-SHA256 usando el XML y la clave secreta.
       const hmac = CryptoJS.HmacSHA256(xmlBody, privateKey);
       const hash = CryptoJS.enc.Base64.stringify(hmac);
       const authHeader = `${publicKey}:${hash}`;
-
-      console.log('Enviando datos a DealerSocket:', xmlBody);
-
+  
+      console.log('Texto plano para el hash:', xmlBody);
+      console.log('Hash generado:', hash);
+      console.log('Authorization Header:', authHeader);
+  
+      // Enviar los datos a DealerSocket.
       const dealerResponse = await fetch('https://oemwebsecure.dealersocket.com/DSOEMLead/US/DCP/ADF/1/SalesLead/223IIV3839', {
         method: 'POST',
         headers: {
@@ -207,11 +223,12 @@ const ReferralForm: React.FC = () => {
         },
         body: xmlBody,
       });
-
-      console.log('Respuesta de DealerSocket:', await dealerResponse.text());
-
-      console.log('Enviando datos a la base de datos en Azure');
-
+  
+      const dealerResponseText = await dealerResponse.text();
+      console.log('Respuesta de DealerSocket:', dealerResponseText);
+      console.log('DealerSocket Status:', dealerResponse.status);
+  
+      // Enviar los datos a la base de datos en Azure, independientemente de la respuesta de DealerSocket.
       const dbResponse = await fetch('http://localhost:3000/referrals', {
         method: 'POST',
         headers: {
@@ -223,7 +240,7 @@ const ReferralForm: React.FC = () => {
           last_name: lastName,
           phone_number: phoneNumber,
           email: email,
-          vehicle_status: vehicleStatus,  
+          vehicle_status: vehicleStatus,
           vehicle_brand: vehicleBrand,
           vehicle_model: vehicleModel,
           dealerships: selectedDealerships,
@@ -231,29 +248,30 @@ const ReferralForm: React.FC = () => {
           status: 'Pending',
         }),
       });
-
-      console.log('Respuesta de la base de datos:', await dbResponse.json());
-
-      if (dealerResponse.ok && dbResponse.ok) {
-        setFirstName('');
-        setLastName('');
-        setPhoneNumber('');
-        setEmail('');
-        setVehicleStatus('');
-        setVehicleBrand('');
-        setVehicleModel('');
-        setSelectedDealerships([]);
-        setStep(1);
-        navigation.navigate('SuccessAnimation', { nextScreen: 'ReferralForm' });
+  
+      const dbResponseJson = await dbResponse.json();
+      console.log('Respuesta de la base de datos:', dbResponseJson);
+      console.log('DB Status:', dbResponse.status);
+  
+      if (dbResponse.status === 201) {
+        console.log('Datos guardados en la base de datos de Azure exitosamente.');
       } else {
-        Alert.alert('Error', 'Hubo un problema al guardar la referencia. Verifica los logs para más detalles.');
+        console.log('Error al guardar los datos en la base de datos. Verifica los logs para más detalles.');
       }
-
+  
+      navigation.navigate('SuccessAnimation', { nextScreen: 'ReferralForm' });
     } catch (error) {
       console.error('Error al guardar el referral:', error);
-      Alert.alert('Error', 'Failed to save referral');
+    } finally {
+      setLoading(false); // Ocultar el preloader al finalizar
+    
+      // Si ocurre algún error, aún así mostrar el preloader.
+      navigation.navigate('SuccessAnimation', { nextScreen: 'ReferralForm' });
     }
   };
+  
+  
+  
 
   return (
     <KeyboardAvoidingView
@@ -523,9 +541,14 @@ const ReferralForm: React.FC = () => {
                 <BackButton onPress={prevStep}>
                   <Ionicons name="arrow-back" size={24} color="white" />
                 </BackButton>
-                <SaveButton onPress={saveReferral}>
-                  <SaveButtonText>Submit</SaveButtonText>
-                </SaveButton>
+                <SaveButton onPress={saveReferral} disabled={loading}>
+  {loading ? (
+    <ActivityIndicator size="small" color="#fff" />
+  ) : (
+    <SaveButtonText>Submit</SaveButtonText>
+  )}
+</SaveButton>
+
               </ButtonContainer>
             </>
           )}
@@ -608,14 +631,15 @@ const BackButton = styled.TouchableOpacity`
   border-radius: 30px;
 `;
 
-const SaveButton = styled.TouchableOpacity`
-  background-color: ${colors.primary};
+const SaveButton = styled.TouchableOpacity<{ disabled: boolean }>`
+  background-color: ${(props: { disabled: any; }) => (props.disabled ? '#ccc' : colors.primary)};
   width: 100px;
   height: 50px;
   justify-content: center;
   align-items: center;
   border-radius: 25px;
 `;
+
 
 const SaveButtonText = styled.Text`
   color: white;

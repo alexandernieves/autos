@@ -195,6 +195,7 @@ app.get('/user/referrals', async (req, res) => {
 });
 
 // Ruta para crear referidos
+// Ruta para crear referidos
 app.post('/referrals', async (req, res) => {
   const { first_name, last_name, phone_number, email, vehicle_status, vehicle_brand, vehicle_model, referred_by_user_id, status } = req.body;
 
@@ -210,14 +211,43 @@ app.post('/referrals', async (req, res) => {
       .input('vehicle_model', sql.NVarChar, vehicle_model)
       .input('referred_by_user_id', sql.Int, referred_by_user_id)
       .input('status', sql.NVarChar, status)
-      .query('INSERT INTO referrals (first_name, last_name, phone_number, email, vehicle_status, vehicle_brand, vehicle_model, referred_by_user_id, status) VALUES (@first_name, @last_name, @phone_number, @email, @vehicle_status, @vehicle_brand, @vehicle_model, @referred_by_user_id, @status)');
+      // Usar OUTPUT INSERTED.ID para obtener el ID del nuevo registro
+      .query(`
+        INSERT INTO referrals (
+          first_name, 
+          last_name, 
+          phone_number, 
+          email, 
+          vehicle_status, 
+          vehicle_brand, 
+          vehicle_model, 
+          referred_by_user_id, 
+          status
+        ) 
+        OUTPUT INSERTED.ID AS insertId
+        VALUES (
+          @first_name, 
+          @last_name, 
+          @phone_number, 
+          @email, 
+          @vehicle_status, 
+          @vehicle_brand, 
+          @vehicle_model, 
+          @referred_by_user_id, 
+          @status
+        )
+      `);
 
-    res.status(201).json({ message: 'Referral saved successfully', referralId: result.recordset.insertId });
+    // Obtener el insertId de la respuesta
+    const insertId = result.recordset[0].insertId; // Asegúrate de que la respuesta tenga el ID
+    console.log('Referral saved successfully with ID:', insertId);
+    res.status(201).json({ message: 'Referral saved successfully', referralId: insertId });
   } catch (error) {
     console.error('Error saving referral:', error.message);
     res.status(500).json({ message: `Failed to save referral: ${error.message}` });
   }
 });
+
 
 // Ruta para contar los referidos pendientes
 app.get('/referrals/count-pending', async (req, res) => {
