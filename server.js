@@ -40,7 +40,7 @@ const secretKey = process.env.JWT_SECRET || '827d89c49894a0817ba2a74963ae486db9b
 
 // Ruta para registrar usuarios nuevos
 app.post('/signup', async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role = 'user' } = req.body;
 
   try {
     const pool = await poolPromise; // Esperar a que el pool esté disponible

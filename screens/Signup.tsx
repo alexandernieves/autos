@@ -213,8 +213,10 @@ export default function Signup() {
       const response = await axios.post('http://localhost:3000/signup', {
         name,
         email,
-        password
+        password,
+        role: 'user', // o el rol que desees asignar por defecto
       });
+      
   
       if (response.data.token) {
         // Almacenar el token en AsyncStorage
