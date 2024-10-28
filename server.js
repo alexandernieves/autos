@@ -4,6 +4,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const sql = require('mssql'); // Reemplazar mysql por mssql
+const nodemailer = require('nodemailer');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -68,6 +69,52 @@ app.post('/signup', async (req, res) => {
   } catch (error) {
     console.error('Error al registrar usuario:', error);
     res.status(500).json({ message: 'Error al registrar el usuario' });
+  }
+});
+
+// Configuración para el servicio de correo
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASSWORD,
+  },
+});
+
+// Endpoint para verificar el email y enviar el código de verificación
+app.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('email', sql.NVarChar, email)
+      .query('SELECT * FROM users WHERE email = @email');
+
+    const user = result.recordset[0];
+
+    if (!user) {
+      return res.status(404).json({ message: 'El correo no existe en la base de datos' });
+    }
+
+    // Generar un código de verificación de 6 dígitos
+    const verificationCode = Math.floor(100000 + Math.random() * 900000);
+
+    // Enviar el código al correo electrónico del usuario
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: 'Código de verificación para restablecer tu contraseña',
+      text: `Tu código de verificación es: ${verificationCode}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    // Guardar el código de verificación en la respuesta (en un entorno real, deberías almacenarlo en la base de datos o en memoria temporalmente)
+    res.status(200).json({ message: 'Código enviado correctamente', code: verificationCode });
+  } catch (error) {
+    console.error('Error en el proceso de restablecimiento de contraseña:', error);
+    res.status(500).json({ message: 'Error al procesar la solicitud' });
   }
 });
 

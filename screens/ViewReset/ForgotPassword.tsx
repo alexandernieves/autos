@@ -8,8 +8,12 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import styled from 'styled-components/native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import ResetPassword from './ResetPassword';
+import axios from 'axios';
 
 const background = require('../../assets/volante_ford.jpg');
+
+
+
 
 interface ForgotPasswordProps {
   navigation: NavigationProp<ParamListBase>;
@@ -21,15 +25,25 @@ export default function ForgotPassword({ navigation }: ForgotPasswordProps) {
   const [isCodeConfirmed, setIsCodeConfirmed] = useState(false);
   const [code, setCode] = useState(["", "", "", ""]);
 
-  const handleResetPassword = () => {
-    if (!isCodeSent) {
-      console.log("Reset password for:", email);
-      setIsCodeSent(true);
-    } else if (!isCodeConfirmed) {
-      console.log("Confirm code:", code.join(""));
-      setIsCodeConfirmed(true);
+ // Dentro de ForgotPassword.tsx
+ const handleResetPassword = async () => {
+  if (!isCodeSent) {
+    try {
+      const response = await axios.post('http://localhost:3000/forgot-password', { email });
+
+      if (response.status === 200) {
+        console.log("Código enviado:", response.data.code); // Muestra solo en desarrollo
+        setIsCodeSent(true);
+      }
+    } catch (error) {
+      alert("El correo no existe o ocurrió un error. Intenta de nuevo.");
     }
-  };
+  } else if (!isCodeConfirmed) {
+    console.log("Confirm code:", code.join(""));
+    setIsCodeConfirmed(true);
+  }
+};
+
 
   return (
     <Background source={background}>
