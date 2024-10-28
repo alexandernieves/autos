@@ -81,7 +81,52 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Endpoint para verificar el email y enviar el código de verificación
+let verificationCodes = {}; 
+
+// Configuración de tiempo de expiración en milisegundos (5 minutos)
+const CODE_EXPIRATION_TIME = 5 * 60 * 1000;
+const MAX_ATTEMPTS = 3;
+
+// Endpoint para verificar el código de verificación
+app.post('/verify-code', async (req, res) => {
+  const { email, code } = req.body;
+
+  // Validar que el código sea un número de 6 dígitos
+  if (!/^\d{6}$/.test(code)) {
+    return res.status(400).json({ message: 'El código debe ser un número de 6 dígitos' });
+  }
+
+  // Verificar si el email tiene un código generado
+  const storedData = verificationCodes[email];
+  if (!storedData) {
+    return res.status(404).json({ message: 'No se encontró ningún código para este correo' });
+  }
+
+  // Verificar si el código ha expirado
+  const { code: storedCode, timestamp, attempts } = storedData;
+  const now = Date.now();
+  if (now - timestamp > CODE_EXPIRATION_TIME) {
+    delete verificationCodes[email]; // Eliminar el código caducado
+    return res.status(400).json({ message: 'El código ha expirado, solicita uno nuevo' });
+  }
+
+  // Verificar el número de intentos
+  if (attempts >= MAX_ATTEMPTS) {
+    return res.status(429).json({ message: 'Has alcanzado el número máximo de intentos. Intenta nuevamente más tarde.' });
+  }
+
+  // Comparar el código ingresado con el almacenado
+  if (storedCode === code) {
+    delete verificationCodes[email]; // Eliminar el código para evitar su reutilización
+    return res.status(200).json({ message: 'Código verificado correctamente' });
+  } else {
+    // Incrementar el número de intentos fallidos
+    verificationCodes[email].attempts += 1;
+    return res.status(400).json({ message: 'Código incorrecto' });
+  }
+});
+
+// Endpoint para enviar el código de verificación y almacenarlo con timestamp y intentos
 app.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
 
@@ -97,10 +142,14 @@ app.post('/forgot-password', async (req, res) => {
       return res.status(404).json({ message: 'El correo no existe en la base de datos' });
     }
 
-    // Generar un código de verificación de 6 dígitos
+    // Generar y almacenar el código de verificación de 6 dígitos
     const verificationCode = Math.floor(100000 + Math.random() * 900000);
+    verificationCodes[email] = {
+      code: verificationCode,
+      timestamp: Date.now(),
+      attempts: 0
+    };
 
-    // Enviar el código al correo electrónico del usuario
     const mailOptions = {
       from: process.env.GMAIL_USER,
       to: email,
@@ -109,14 +158,14 @@ app.post('/forgot-password', async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
-
-    // Guardar el código de verificación en la respuesta (en un entorno real, deberías almacenarlo en la base de datos o en memoria temporalmente)
-    res.status(200).json({ message: 'Código enviado correctamente', code: verificationCode });
+    res.status(200).json({ message: 'Código enviado correctamente' });
   } catch (error) {
     console.error('Error en el proceso de restablecimiento de contraseña:', error);
     res.status(500).json({ message: 'Error al procesar la solicitud' });
   }
 });
+
+
 
 // Ruta de inicio de sesión
 app.post('/login', async (req, res) => {
