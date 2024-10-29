@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const sql = require('mssql'); // Reemplazar mysql por mssql
+const sql = require('mssql');
 const nodemailer = require('nodemailer');
 
 const app = express();
@@ -13,20 +13,19 @@ app.use(express.json());
 
 // Configuración de conexión a Azure SQL Database
 const config = {
-  user: process.env.DB_USER, // Usuario de la base de datos
-  password: process.env.DB_PASSWORD, // Contraseña de la base de datos
-  server: process.env.DB_SERVER, // Dirección del servidor (ej. 'your-server.database.windows.net')
-  database: process.env.DB_NAME, // Nombre de la base de datos
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  server: process.env.DB_SERVER,
+  database: process.env.DB_NAME,
   options: {
-    encrypt: true, // Azure SQL requiere cifrado
-    trustServerCertificate: true // Usar solo si es necesario
+    encrypt: true,
+    trustServerCertificate: true
   },
 };
 
 // Variable global para el pool de conexiones
 let poolPromise;
 
-// Establecer la conexión con la base de datos
 poolPromise = sql.connect(config)
   .then(pool => {
     console.log('Conexión exitosa a Azure SQL Database');
@@ -36,21 +35,105 @@ poolPromise = sql.connect(config)
     console.error('Error de conexión a la base de datos:', err);
   });
 
-// Clave secreta para firmar los tokens JWT
 const secretKey = process.env.JWT_SECRET || '827d89c49894a0817ba2a74963ae486db9b5329b557eaa123e78731e718754ddc0fdd2034f1f45eef948aaff1b548631c9809d23668d56105c74181bd301411d';
 
-// Ruta para registrar usuarios nuevos
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASSWORD,
+  },
+});
+
+app.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('email', sql.NVarChar, email)
+      .query('SELECT * FROM users WHERE email = @email');
+
+    const user = result.recordset[0];
+
+    if (!user) {
+      console.log(`Solicitud de restablecimiento fallida: el correo ${email} no existe.`);
+      return res.status(404).json({ message: 'El correo no existe en la base de datos' });
+    }
+
+    const verificationCode = Math.floor(100000 + Math.random() * 900000);
+    verificationCodes[email] = {
+      code: verificationCode,
+      timestamp: Date.now(),
+      attempts: 0
+    };
+
+    console.log(`Código de verificación generado para ${email}: ${verificationCode}`);
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: 'Código de verificación para restablecer tu contraseña',
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
+          <h1 style="color: #4CAF50;">Restablecer Contraseña</h1>
+          <p>Hola,</p>
+          <p>Tu código de verificación es:</p>
+          <h2 style="font-size: 24px; color: #4CAF50;">${verificationCode}</h2>
+          <p>Por favor, utiliza este código para restablecer tu contraseña.</p>
+          <p>Si no solicitaste este código, puedes ignorar este mensaje.</p>
+          <footer style="margin-top: 20px; font-size: 12px; color: #999;">
+            <p>&copy; ${new Date().getFullYear()} Cabrera autos</p>
+          </footer>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Correo de verificación enviado a ${email}.`);
+
+    // Actualiza la respuesta para incluir el código de verificación
+    res.status(200).json({ message: 'Código enviado correctamente', code: verificationCode });
+  } catch (error) {
+    console.error('Error en el proceso de restablecimiento de contraseña:', error);
+    res.status(500).json({ message: 'Error al procesar la solicitud' });
+  }
+});
+
+
+
+// Variable para almacenar los códigos de verificación de los usuarios
+const verificationCodes = {}; // Esto se debe manejar de manera más segura en un entorno real
+
+app.post('/verify-code', (req, res) => {
+  const { email, code } = req.body;
+
+  // Verificamos si hay un código guardado para el correo electrónico
+  if (!verificationCodes[email]) {
+    return res.status(404).json({ message: 'No se encontró un código de verificación para este correo.' });
+  }
+
+  // Verificamos si el código ingresado coincide con el guardado
+  if (verificationCodes[email].code.toString() === code) {
+    return res.status(200).json({ message: 'Código de verificación aprobado' });
+  } else {
+    return res.status(400).json({ message: 'Código de verificación no aprobado' });
+  }
+});
+
+
+
 app.post('/signup', async (req, res) => {
   const { name, email, password, role = 'user' } = req.body;
 
   try {
-    const pool = await poolPromise; // Esperar a que el pool esté disponible
-
+    const pool = await poolPromise;
     const result = await pool.request()
       .input('email', sql.NVarChar, email)
       .query('SELECT * FROM users WHERE email = @email');
 
     if (result.recordset.length > 0) {
+      console.log(`Intento de registro fallido: el email ${email} ya está registrado.`);
       return res.status(400).json({ message: 'Este email ya está registrado' });
     }
 
@@ -65,107 +148,13 @@ app.post('/signup', async (req, res) => {
 
     const token = jwt.sign({ email, name, role: role || 'user' }, secretKey, { expiresIn: '1h' });
 
+    console.log(`Usuario registrado exitosamente: ${email}`);
     res.status(201).json({ message: 'Usuario registrado exitosamente', token });
   } catch (error) {
     console.error('Error al registrar usuario:', error);
     res.status(500).json({ message: 'Error al registrar el usuario' });
   }
 });
-
-// Configuración para el servicio de correo
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASSWORD,
-  },
-});
-
-let verificationCodes = {}; 
-
-// Configuración de tiempo de expiración en milisegundos (5 minutos)
-const CODE_EXPIRATION_TIME = 5 * 60 * 1000;
-const MAX_ATTEMPTS = 3;
-
-// Endpoint para verificar el código de verificación
-app.post('/verify-code', async (req, res) => {
-  const { email, code } = req.body;
-
-  // Validar que el código sea un número de 6 dígitos
-  if (!/^\d{6}$/.test(code)) {
-    return res.status(400).json({ message: 'El código debe ser un número de 6 dígitos' });
-  }
-
-  // Verificar si el email tiene un código generado
-  const storedData = verificationCodes[email];
-  if (!storedData) {
-    return res.status(404).json({ message: 'No se encontró ningún código para este correo' });
-  }
-
-  // Verificar si el código ha expirado
-  const { code: storedCode, timestamp, attempts } = storedData;
-  const now = Date.now();
-  if (now - timestamp > CODE_EXPIRATION_TIME) {
-    delete verificationCodes[email]; // Eliminar el código caducado
-    return res.status(400).json({ message: 'El código ha expirado, solicita uno nuevo' });
-  }
-
-  // Verificar el número de intentos
-  if (attempts >= MAX_ATTEMPTS) {
-    return res.status(429).json({ message: 'Has alcanzado el número máximo de intentos. Intenta nuevamente más tarde.' });
-  }
-
-  // Comparar el código ingresado con el almacenado
-  if (storedCode === code) {
-    delete verificationCodes[email]; // Eliminar el código para evitar su reutilización
-    return res.status(200).json({ message: 'Código verificado correctamente' });
-  } else {
-    // Incrementar el número de intentos fallidos
-    verificationCodes[email].attempts += 1;
-    return res.status(400).json({ message: 'Código incorrecto' });
-  }
-});
-
-// Endpoint para enviar el código de verificación y almacenarlo con timestamp y intentos
-app.post('/forgot-password', async (req, res) => {
-  const { email } = req.body;
-
-  try {
-    const pool = await poolPromise;
-    const result = await pool.request()
-      .input('email', sql.NVarChar, email)
-      .query('SELECT * FROM users WHERE email = @email');
-
-    const user = result.recordset[0];
-
-    if (!user) {
-      return res.status(404).json({ message: 'El correo no existe en la base de datos' });
-    }
-
-    // Generar y almacenar el código de verificación de 6 dígitos
-    const verificationCode = Math.floor(100000 + Math.random() * 900000);
-    verificationCodes[email] = {
-      code: verificationCode,
-      timestamp: Date.now(),
-      attempts: 0
-    };
-
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to: email,
-      subject: 'Código de verificación para restablecer tu contraseña',
-      text: `Tu código de verificación es: ${verificationCode}`,
-    };
-
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: 'Código enviado correctamente' });
-  } catch (error) {
-    console.error('Error en el proceso de restablecimiento de contraseña:', error);
-    res.status(500).json({ message: 'Error al procesar la solicitud' });
-  }
-});
-
-
 
 // Ruta de inicio de sesión
 app.post('/login', async (req, res) => {

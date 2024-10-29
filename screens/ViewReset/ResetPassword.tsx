@@ -73,11 +73,6 @@ export default function ResetPassword({ navigation }: ResetPasswordProps) {
         </TouchableOpacity>
       </InputContainer>
 
-      <ButtonContainer>
-        <NavButton onPress={handleSavePassword}>
-          <Ionicons name="save-outline" size={30} color="#fff" />
-        </NavButton>
-      </ButtonContainer>
     </>
   );
 }
@@ -129,19 +124,6 @@ const Hint = styled.Text`
   margin-bottom: 20px;
 `;
 
-const ButtonContainer = styled.View`
-  flex-direction: row;
-  justify-content: flex-end;
-  width: 100%;
-  margin-top: 20px;
-`;
 
-const NavButton = styled(TouchableOpacity)`
-  background-color: #002368;
-  border-radius: 30px;
-  padding: 10px;
-  justify-content: center;
-  align-items: center;
-  width: 60px;
-  height: 60px;
-`;
+
+

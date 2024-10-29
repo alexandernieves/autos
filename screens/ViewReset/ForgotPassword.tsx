@@ -25,6 +25,7 @@ export default function ForgotPassword({ navigation }: ForgotPasswordProps) {
   const [isCodeConfirmed, setIsCodeConfirmed] = useState(false);
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const shakeAnimation = useRef(new Animated.Value(0)).current;
+  const [sentCode, setSentCode] = useState(""); // Agrega esto para almacenar el código enviado
 
   // Función para activar la animación de vibración
   const triggerShakeAnimation = () => {
@@ -42,27 +43,48 @@ export default function ForgotPassword({ navigation }: ForgotPasswordProps) {
       Alert.alert("Error", "Por favor ingresa tu correo electrónico.");
       return;
     }
-
+  
     if (!isCodeSent) {
       try {
         const response = await axios.post('http://localhost:3000/forgot-password', { email });
         if (response.status === 200) {
-          console.log("Código enviado:", response.data.code);
+          const codeFromServer = response.data.code;
+          console.log("Código enviado (desde el servidor):", codeFromServer);
+          setSentCode(codeFromServer.toString()); // Asegurarse de guardarlo como string
           setIsCodeSent(true);
         }
       } catch (error) {
         Alert.alert("Error", "El correo no existe o ocurrió un error. Intenta de nuevo.");
       }
     } else if (!isCodeConfirmed) {
-      // Validar que todos los campos de código estén completos
       if (code.some((digit) => digit === "")) {
         Alert.alert("Error", "Por favor ingresa todos los dígitos del código.");
         triggerShakeAnimation();
         return;
       }
-
-      console.log("Confirm code:", code.join(""));
-      setIsCodeConfirmed(true);
+  
+      const enteredCode = code.join("");
+      console.log("Código ingresado:", enteredCode);
+      console.log("Código guardado (sentCode):", sentCode);
+  
+      // Verificar la comparación
+      if (enteredCode === sentCode) {
+        Alert.alert(
+          "Código correcto",
+          "El código ingresado es correcto. Ahora puedes restablecer tu contraseña.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setIsCodeConfirmed(true); // Cambia el estado solo después de confirmar el mensaje
+              },
+            },
+          ]
+        );
+      } else {
+        Alert.alert("Error", "El código ingresado no es correcto. Intenta nuevamente.");
+        triggerShakeAnimation();
+      }
     }
   };
 
@@ -76,7 +98,6 @@ export default function ForgotPassword({ navigation }: ForgotPasswordProps) {
             {isCodeSent ? (
               <>
                 <Instruction>Enter your confirmation code</Instruction>
-                {/* Aplicar la animación de vibración */}
                 <Animated.View style={{ transform: [{ translateX: shakeAnimation }] }}>
                   <CodeInputContainer>
                     {code.map((value, index) => (
@@ -91,7 +112,7 @@ export default function ForgotPassword({ navigation }: ForgotPasswordProps) {
                           setCode(newCode);
                         }}
                         style={{
-                          borderColor: code[index] === "" ? "red" : "#002368", // borde rojo si está vacío
+                          borderColor: code[index] === "" ? "red" : "#002368",
                           borderWidth: 2,
                         }}
                       />
@@ -115,19 +136,20 @@ export default function ForgotPassword({ navigation }: ForgotPasswordProps) {
                 </InputContainer>
               </>
             )}
-            
-            <ButtonContainer>
-              <NavButton onPress={() => navigation.navigate('Login')}>
-                <Ionicons name="arrow-back" size={30} color="#fff" />
-              </NavButton>
-              <NavButton onPress={handleResetPassword}>
-                <Ionicons name="arrow-forward" size={30} color="#fff" />
-              </NavButton>
-            </ButtonContainer>
           </>
         ) : (
           <ResetPassword navigation={navigation} />
         )}
+
+        {/* Botones de navegación que se mantendrán visibles */}
+        <ButtonContainer>
+          <NavButton onPress={() => navigation.navigate('Login')}>
+            <Ionicons name="arrow-back" size={30} color="#fff" />
+          </NavButton>
+          <NavButton onPress={handleResetPassword}>
+            <Ionicons name="arrow-forward" size={30} color="#fff" />
+          </NavButton>
+        </ButtonContainer>
       </Container>
     </Background>
   );

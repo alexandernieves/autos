@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { TextInput, TouchableOpacity, ImageBackground, Alert, Vibration, Animated } from 'react-native';
+import { TextInput, TouchableOpacity, ImageBackground, Alert, Animated } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import styled from 'styled-components/native';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 const background = require('../../assets/volante_ford.jpg');
@@ -17,10 +17,8 @@ export default function ConfirmCode({ navigation, route }: ConfirmCodeProps) {
   const [code, setCode] = useState("");
   const [isError, setIsError] = useState(false);
   
-  // Animation reference for shake effect
   const shakeAnimation = useRef(new Animated.Value(0)).current;
 
-  // Function to trigger shake animation
   const triggerShakeAnimation = () => {
     Animated.sequence([
       Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
@@ -31,24 +29,31 @@ export default function ConfirmCode({ navigation, route }: ConfirmCodeProps) {
   };
 
   const handleConfirmCode = async () => {
-    if (code.length !== 6 || !/^\d{6}$/.test(code)) { // Validar que el código tenga 6 dígitos completos y sea numérico
-      setIsError(true);
-      Vibration.vibrate(300); // Vibrar si el código es incorrecto
-      triggerShakeAnimation(); // Activar la animación de vibración
-      Alert.alert("Código incorrecto", "Por favor ingresa un código de 6 dígitos.");
+    // Validación de código de 6 dígitos
+    if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+      Alert.alert("Error", "Por favor ingresa un código de 6 dígitos.");
+      triggerShakeAnimation();
       return;
     }
 
     try {
       const response = await axios.post('http://localhost:3000/verify-code', { email, code });
 
-      if (response.status === 200) {
-        navigation.navigate('ResetPassword'); // Navegar a la pantalla de restablecimiento de contraseña
+      if (response.status === 200 && response.data.message === 'Código de verificación aprobado') {
+        Alert.alert("Código de verificación aprobado", "El código ingresado es correcto.", [
+          { text: "OK", onPress: () => navigation.navigate('ResetPassword') }
+        ]);
       }
     } catch (error) {
-      setIsError(true);
-      Vibration.vibrate(300); // Hacer vibrar los cuadros de entrada
-      Alert.alert("Código incorrecto", "El código ingresado no es correcto."); // Mostrar mensaje de alerta
+      // Aquí definimos el tipo de error
+      const axiosError = error as AxiosError; // Cast al tipo AxiosError
+      if (axiosError.response && axiosError.response.status === 400) {
+        Alert.alert("Código incorrecto", "El código ingresado no es correcto.", [
+          { text: "OK", onPress: () => triggerShakeAnimation() }
+        ]);
+      } else {
+        Alert.alert("Error", "Ocurrió un error al verificar el código.");
+      }
     }
   };
 
@@ -59,7 +64,6 @@ export default function ConfirmCode({ navigation, route }: ConfirmCodeProps) {
         <Subtitle>Auto Dealership Cabrera!</Subtitle>
         <Instruction>Enter your confirmation code</Instruction>
 
-        {/* Shake Animation */}
         <Animated.View style={{ transform: [{ translateX: shakeAnimation }] }}>
           <CodeInputContainer>
             {[...Array(6)].map((_, index) => (
@@ -83,7 +87,7 @@ export default function ConfirmCode({ navigation, route }: ConfirmCodeProps) {
                   const newCode = code.split('');
                   newCode[index] = text;
                   setCode(newCode.join(''));
-                  setIsError(false); // Resetear el estado de error al cambiar el código
+                  setIsError(false);
                 }}
               />
             ))}
