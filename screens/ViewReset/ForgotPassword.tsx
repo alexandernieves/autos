@@ -25,9 +25,9 @@ export default function ForgotPassword({ navigation }: ForgotPasswordProps) {
   const [isCodeConfirmed, setIsCodeConfirmed] = useState(false);
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const shakeAnimation = useRef(new Animated.Value(0)).current;
-  const [sentCode, setSentCode] = useState(""); // Agrega esto para almacenar el código enviado
+  const [sentCode, setSentCode] = useState("");
+  const [showButtons, setShowButtons] = useState(true); // Nuevo estado para controlar los botones
 
-  // Función para activar la animación de vibración
   const triggerShakeAnimation = () => {
     Vibration.vibrate(300);
     Animated.sequence([
@@ -49,8 +49,7 @@ export default function ForgotPassword({ navigation }: ForgotPasswordProps) {
         const response = await axios.post('http://localhost:3000/forgot-password', { email });
         if (response.status === 200) {
           const codeFromServer = response.data.code;
-          console.log("Código enviado (desde el servidor):", codeFromServer);
-          setSentCode(codeFromServer.toString()); // Asegurarse de guardarlo como string
+          setSentCode(codeFromServer.toString());
           setIsCodeSent(true);
         }
       } catch (error) {
@@ -64,27 +63,36 @@ export default function ForgotPassword({ navigation }: ForgotPasswordProps) {
       }
   
       const enteredCode = code.join("");
-      console.log("Código ingresado:", enteredCode);
-      console.log("Código guardado (sentCode):", sentCode);
   
-      // Verificar la comparación
       if (enteredCode === sentCode) {
-        Alert.alert(
-          "Código correcto",
-          "El código ingresado es correcto. Ahora puedes restablecer tu contraseña.",
-          [
-            {
-              text: "OK",
-              onPress: () => {
-                setIsCodeConfirmed(true); // Cambia el estado solo después de confirmar el mensaje
-              },
+        Alert.alert("Código correcto", "Ahora puedes restablecer tu contraseña.", [
+          {
+            text: "OK",
+            onPress: () => {
+              setIsCodeConfirmed(true);
+              setShowButtons(false); // Oculta los botones al confirmar el código
             },
-          ]
-        );
+          },
+        ]);
       } else {
         Alert.alert("Error", "El código ingresado no es correcto. Intenta nuevamente.");
         triggerShakeAnimation();
       }
+    }
+  };
+
+  const handleUpdatePassword = async (newPassword: string) => {
+    try {
+      const response = await axios.post('http://localhost:3000/update-password', {
+        email,
+        newPassword,
+      });
+      if (response.status === 200) {
+        Alert.alert('Éxito', 'Tu contraseña ha sido actualizada');
+        navigation.navigate('Login');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo actualizar la contraseña. Intenta de nuevo.');
     }
   };
 
@@ -138,18 +146,25 @@ export default function ForgotPassword({ navigation }: ForgotPasswordProps) {
             )}
           </>
         ) : (
-          <ResetPassword navigation={navigation} />
+          <ResetPassword navigation={navigation} onUpdatePassword={handleUpdatePassword} email={''} />
         )}
 
-        {/* Botones de navegación que se mantendrán visibles */}
-        <ButtonContainer>
-          <NavButton onPress={() => navigation.navigate('Login')}>
-            <Ionicons name="arrow-back" size={30} color="#fff" />
-          </NavButton>
-          <NavButton onPress={handleResetPassword}>
-            <Ionicons name="arrow-forward" size={30} color="#fff" />
-          </NavButton>
-        </ButtonContainer>
+        {showButtons && ( // Mostrar botones solo si showButtons es true
+          <ButtonContainer>
+            <NavButton onPress={() => navigation.navigate('Login')}>
+              <Ionicons name="arrow-back" size={30} color="#fff" />
+            </NavButton>
+            <NavButton onPress={() => {
+              if (isCodeConfirmed) {
+                navigation.navigate('ResetPassword');
+              } else {
+                handleResetPassword();
+              }
+            }}>
+              <Ionicons name={isCodeConfirmed ? 'save' : 'arrow-forward'} size={30} color="#fff" />
+            </NavButton>
+          </ButtonContainer>
+        )}
       </Container>
     </Background>
   );

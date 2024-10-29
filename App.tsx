@@ -7,6 +7,7 @@ import Login from './screens/Login';
 import Signup from './screens/Signup';
 import Welcome from './screens/Welcome';
 import ForgotPassword from './screens/ViewReset/ForgotPassword';
+import ResetPassword from './screens/ViewReset/ForgotPassword';
 import ConfirmCode from './screens/ViewReset/ConfirmCode';
 import Admin from './screens/Admin';
 import Referrals from './screens/Referrals';
@@ -35,6 +36,7 @@ export type RootStackParamList = {
   Signup: undefined;
   InviteFriendsScreen: undefined;
   ForgotPassword: undefined;
+  ResetPassword : undefined ;
   ConfirmCode: undefined;
   Admin: undefined;
   Home: undefined;
@@ -68,6 +70,7 @@ function MainStackNavigator() {
       <Stack.Screen name="ReferralTable" component={ReferralTable} />
       <Stack.Screen name="UserTable" component={UserTable} />
       <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+      <Stack.Screen name="ResetPassword" component={ForgotPassword} />
       <Stack.Screen name="ConfirmCode" component={ConfirmCode} />
       <Stack.Screen name="DrawerNavigator" component={CustomDrawerNavigator} />
       <Stack.Screen name="Admin" component={Admin} />

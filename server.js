@@ -1,5 +1,4 @@
 require('dotenv').config();
-
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -19,13 +18,14 @@ const config = {
   database: process.env.DB_NAME,
   options: {
     encrypt: true,
-    trustServerCertificate: true
+    trustServerCertificate: true,
   },
 };
 
 // Variable global para el pool de conexiones
 let poolPromise;
 
+// Crear el pool de conexiones
 poolPromise = sql.connect(config)
   .then(pool => {
     console.log('Conexión exitosa a Azure SQL Database');
@@ -35,7 +35,31 @@ poolPromise = sql.connect(config)
     console.error('Error de conexión a la base de datos:', err);
   });
 
-const secretKey = process.env.JWT_SECRET || '827d89c49894a0817ba2a74963ae486db9b5329b557eaa123e78731e718754ddc0fdd2034f1f45eef948aaff1b548631c9809d23668d56105c74181bd301411d';
+// Endpoint para actualizar la contraseña
+app.post('/update-password', async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  try {
+    const pool = await poolPromise;
+
+    // Actualiza la contraseña en la base de datos sin hashearla
+    await pool.request()
+      .input('email', sql.NVarChar, email)
+      .input('newPassword', sql.NVarChar, newPassword) // Almacenar la contraseña como texto plano
+      .query('UPDATE dbo.users SET password = @newPassword WHERE email = @email');
+
+    res.status(200).send({ message: 'Contraseña actualizada con éxito' });
+  } catch (error) {
+    console.error('Error al actualizar la contraseña:', error);
+    res.status(500).send({ message: 'Error al actualizar la contraseña' });
+  }
+});
+
+
+
+
+
+
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -44,6 +68,8 @@ const transporter = nodemailer.createTransport({
     pass: process.env.GMAIL_PASSWORD,
   },
 });
+
+
 
 app.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
@@ -163,9 +189,10 @@ app.post('/login', async (req, res) => {
   try {
     const pool = await poolPromise;
 
+    // Asegúrate de usar la tabla correcta: dbo.users
     const result = await pool.request()
       .input('email', sql.NVarChar, email)
-      .query('SELECT * FROM users WHERE email = @email');
+      .query('SELECT * FROM dbo.users WHERE email = @email');
     
     const user = result.recordset[0];
 
@@ -173,16 +200,16 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Email o contraseña incorrectos' });
     }
 
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
+    // Compara la contraseña ingresada con la almacenada en texto plano
+    if (password !== user.password) {
       return res.status(401).json({ message: 'Email o contraseña incorrectos' });
     }
 
-    await pool.request()
-      .input('id', sql.Int, user.id)
-      .query('UPDATE users SET is_active = 1 WHERE id = @id');
-
-    const newToken = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, secretKey, { expiresIn: '1h' });
+    const newToken = jwt.sign(
+      { id: user.id, email: user.email, name: user.name, role: user.role },
+      secretKey,
+      { expiresIn: '1h' }
+    );
 
     res.json({ token: newToken });
   } catch (error) {
@@ -190,6 +217,8 @@ app.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Error al iniciar sesión' });
   }
 });
+
+
 
 // Cerrar sesión
 app.post('/logout', async (req, res) => {
