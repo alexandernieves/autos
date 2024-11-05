@@ -309,7 +309,7 @@ export default function Login({ navigation }: LoginProps) {
     if (isEmailValid && isPasswordValid) {
       setIsLoading(true);
       try {
-        const response = await axios.post('http://localhost:3000/login', {
+        const response = await axios.post('https://api.cabreraapp.alexcode.org/cabrera/login', {
           email,
           password
         });

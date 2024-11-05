@@ -64,7 +64,7 @@ const Chat: React.FC = () => {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/messages'); // Reemplaza con la URL de tu API
+        const response = await axios.get('https://api.cabreraapp.alexcode.org/cabrera/messages'); // Reemplaza con la URL de tu API
         const formattedMessages = response.data.map((msg: any) => ({
           _id: msg._id,
           text: msg.text,
@@ -91,7 +91,7 @@ const Chat: React.FC = () => {
     );
     const { _id, createdAt, text, user } = newMessages[0];
     try {
-      await axios.post('http://localhost:3000/messages', {
+      await axios.post('https://api.cabreraapp.alexcode.org/cabrera/messages', {
         _id,
         createdAt,
         text,

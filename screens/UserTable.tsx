@@ -26,7 +26,7 @@ const UserTable: React.FC = () => {
   const fetchUsers = async (page: number) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/users?page=${page}&limit=${itemsPerPage}`);
+      const response = await fetch(`https://api.cabreraapp.alexcode.org/cabrera/users?page=${page}&limit=${itemsPerPage}`);
       const data = await response.json();
       setUsers(data.users);
       setTotalPages(Math.ceil(data.total / itemsPerPage));
@@ -47,7 +47,7 @@ const UserTable: React.FC = () => {
     const newRole = currentRole === 'user' ? 'admin' : 'user';
 
     try {
-      const response = await fetch(`http://localhost:3000/users/${userId}/role`, {
+      const response = await fetch(`https://api.cabreraapp.alexcode.org/cabrera/users/${userId}/role`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

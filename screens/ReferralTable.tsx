@@ -34,7 +34,7 @@ const ReferralTable: React.FC = () => {
   const fetchReferrals = async (page: number) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/get-referrals?page=${page}&limit=${itemsPerPage}`);
+      const response = await fetch(`https://api.cabreraapp.alexcode.org/cabrera/get-referrals?page=${page}&limit=${itemsPerPage}`);
       const data = await response.json();
       setReferrals(data.referrals);
       setTotalPages(Math.ceil(data.total / itemsPerPage));
@@ -58,7 +58,7 @@ const ReferralTable: React.FC = () => {
   const handleSaveStatus = async () => {
     if (selectedReferral) {
       try {
-        const response = await fetch(`http://localhost:3000/referrals/${selectedReferral.id}/status`, {
+        const response = await fetch(`https://api.cabreraapp.alexcode.org/cabrera/referrals/${selectedReferral.id}/status`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

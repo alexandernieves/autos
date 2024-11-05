@@ -27,7 +27,7 @@ export default function ResetPassword({ email, navigation, onUpdatePassword }: R
     }
   
     try {
-      await axios.post('http://92.119.177.22:3000/update-password', {  // Cambia aquí la URL
+      await axios.post('https://api.cabreraapp.alexcode.org/cabrera/update-password', {  // Cambia aquí la URL
         email,
         newPassword: password,
       });

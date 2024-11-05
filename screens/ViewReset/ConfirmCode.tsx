@@ -37,7 +37,7 @@ export default function ConfirmCode({ navigation, route }: ConfirmCodeProps) {
     }
 
     try {
-      const response = await axios.post('http://localhost:3000/verify-code', { email, code });
+      const response = await axios.post('https://api.cabreraapp.alexcode.org/cabrera/verify-code', { email, code });
 
       if (response.status === 200 && response.data.message === 'Código de verificación aprobado') {
         Alert.alert("Código de verificación aprobado", "El código ingresado es correcto.", [

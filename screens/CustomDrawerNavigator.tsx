@@ -71,7 +71,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
       const token = await AsyncStorage.getItem('jwtToken');
       
       if (token) {
-        await fetch('http://localhost:3000/logout', {
+        await fetch('https://api.cabreraapp.alexcode.org/cabrera/logout', {
           method: 'POST',
           headers: {
             Authorization: `${token}`,

@@ -22,7 +22,7 @@ const Admin: React.FC = () => {
 
   const fetchData = async (endpoint: string, stateKey: keyof typeof userStats) => {
     try {
-      const response = await fetch(`http://localhost:3000/${endpoint}`);
+      const response = await fetch(`https://api.cabreraapp.alexcode.org/cabrera/${endpoint}`);
       const data = await response.json();
       if (response.ok) {
         setUserStats(prevState => ({

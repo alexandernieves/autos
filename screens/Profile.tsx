@@ -50,7 +50,7 @@ const Profile: React.FC = () => {
       
       if (token) {
         // Hacer la solicitud al backend para actualizar is_active a 0
-        await fetch('http://localhost:3000/logout', {
+        await fetch('https://api.cabreraapp.alexcode.org/cabrera/logout', {
           method: 'POST',
           headers: {
             Authorization: `${token}`,
@@ -77,7 +77,7 @@ const Profile: React.FC = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:3000/referrals/count', {
+      const response = await fetch('https://api.cabreraapp.alexcode.org/cabrera/referrals/count', {
         headers: {
           Authorization: `${token}`,
         },

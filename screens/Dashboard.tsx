@@ -44,11 +44,11 @@ const Dashboard: React.FC = () => {
     };
 
     const fetchAllData = async () => {
-      await fetchData('http://localhost:3000/referrals/count', setTotalReferrals, 'totalReferrals');
-      await fetchData('http://localhost:3000/referrals/count-pending', setPendingReferrals, 'pendingReferrals');
-      await fetchData('http://localhost:3000/referrals/count-booked', setBookedReferrals, 'bookedReferrals');
-      await fetchData('http://localhost:3000/referrals/count-closed', setClosedReferrals, 'closedReferrals');
-      await fetchData('http://localhost:3000/referrals/count-lost', setLostReferrals, 'lostReferrals');
+      await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count', setTotalReferrals, 'totalReferrals');
+      await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count-pending', setPendingReferrals, 'pendingReferrals');
+      await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count-booked', setBookedReferrals, 'bookedReferrals');
+      await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count-closed', setClosedReferrals, 'closedReferrals');
+      await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count-lost', setLostReferrals, 'lostReferrals');
       setLoading(false);
     };
 

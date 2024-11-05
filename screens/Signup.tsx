@@ -210,7 +210,7 @@ export default function Signup() {
   
     // Realizamos la petición al backend para crear el usuario
     try {
-      const response = await axios.post('http://localhost:3000/signup', {
+      const response = await axios.post('https://api.cabreraapp.alexcode.org/cabrera/signup', {
         name,
         email,
         password,

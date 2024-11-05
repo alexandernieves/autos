@@ -46,7 +46,7 @@ export default function ForgotPassword({ navigation }: ForgotPasswordProps) {
   
     if (!isCodeSent) {
       try {
-        const response = await axios.post('http://localhost:3000/forgot-password', { email });
+        const response = await axios.post('https://api.cabreraapp.alexcode.org/cabrera/forgot-password', { email });
         if (response.status === 200) {
           const codeFromServer = response.data.code;
           setSentCode(codeFromServer.toString());
@@ -83,7 +83,7 @@ export default function ForgotPassword({ navigation }: ForgotPasswordProps) {
 
   const handleUpdatePassword = async (newPassword: string) => {
     try {
-      const response = await axios.post('http://localhost:3000/update-password', {
+      const response = await axios.post('https://api.cabreraapp.alexcode.org/cabrera/update-password', {
         email,
         newPassword,
       });

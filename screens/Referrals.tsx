@@ -173,7 +173,7 @@ export default function Referrals() {
           Alert.alert('Error', 'No se encontró un token, por favor inicie sesión.');
           return;
         }
-        const response = await fetch('http://localhost:3000/user/referrals', {
+        const response = await fetch('https://api.cabreraapp.alexcode.org/cabrera/user/referrals', {
           headers: { Authorization: `${token}` }, // Agrega el token de autorización
         });
 
