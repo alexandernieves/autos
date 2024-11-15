@@ -18,9 +18,17 @@ export default {
     "assetBundlePatterns": [
       "**/*"
     ],
+    "plugins": [
+      [
+        "expo-asset", // Agrega el plugin expo-asset para la gestión de imágenes
+        {
+          "platforms": ["ios", "android", "web"]
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier":"com.alexcode.org.cabrera"
+      "bundleIdentifier": "com.alexcode.org.cabrera"
     },
     "android": {
       "adaptiveIcon": {
@@ -33,7 +41,7 @@ export default {
       "favicon": "./assets/favicon.png"
     },
     "scheme": "cabreraautos",
-    extra: {
+    "extra": {
       apiKey: process.env.API_KEY,
       authDomain: process.env.AUTH_DOMAIN,
       projectId: process.env.PROJECT_ID,

@@ -72,6 +72,7 @@ const Dashboard: React.FC = () => {
 
         <RowContainer>
           <ReferralBoxSquare>
+            {/* conectar con contacted 221 */}
             <SmallBoxTitle>Booked</SmallBoxTitle>
             <BoxIconAndValue>
               <FontAwesome name="check-circle" size={50} color={colors.primary} />
@@ -84,6 +85,7 @@ const Dashboard: React.FC = () => {
           </ReferralBoxSquare>
 
           <ReferralBoxSquare>
+            {/* conectar con pending 220 */}
             <SmallBoxTitle>Pending</SmallBoxTitle>
             <BoxIconAndValue>
               <FontAwesome name="hourglass-half" size={50} color={colors.primary} />
@@ -98,7 +100,8 @@ const Dashboard: React.FC = () => {
 
         <RowContainer>
           <ReferralBoxSquare>
-            <SmallBoxTitle>Closed</SmallBoxTitle>
+            {/* conectar con sold 225 */}
+            <SmallBoxTitle>Sold</SmallBoxTitle>
             <BoxIconAndValue>
               <FontAwesome name="smile-o" size={50} color={colors.primary} />
               {loading ? (
@@ -110,6 +113,7 @@ const Dashboard: React.FC = () => {
           </ReferralBoxSquare>
 
           <ReferralBoxSquare>
+            {/* conectar con lost 226 */}
             <SmallBoxTitle>Lost</SmallBoxTitle>
             <BoxIconAndValue>
               <FontAwesome name="frown-o" size={50} color={colors.primary} />

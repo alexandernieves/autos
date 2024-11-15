@@ -26,10 +26,12 @@
     "@types/styled-components-react-native": "^5.2.5",
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
+    "buffer": "^6.0.3",
     "chalk": "^5.3.0",
     "crypto-js": "^4.2.0",
     "dotenv": "^11.0.0",
     "expo": "~51.0.28",
+    "expo-asset": "~10.0.10",
     "expo-auth-session": "~5.5.2",
     "expo-constants": "~16.0.2",
     "expo-crypto": "~13.0.2",
@@ -66,7 +68,8 @@
     "react-native-web": "~0.19.10",
     "react-navigation-drawer": "^2.7.2",
     "react-redux": "^9.1.2",
-    "styled-components": "^6.1.12"
+    "styled-components": "^6.1.12",
+    "xmlbuilder2": "^3.1.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.25.9",

@@ -89,7 +89,10 @@ export default function Welcome() {
     <Container>
       <BackgroundImage source={require('../assets/ford_raptor_forest.jpg')} />
       <CurvedContainer>
-        <Logo source={require('../assets/cabrera.png')} />
+      <Logo 
+  source={require('../assets/cabrera.png')} 
+  onError={(e: { nativeEvent: { error: any; }; }) => console.log('Error loading image:', e.nativeEvent.error)}
+/>
       </CurvedContainer>
       <Footer>
         <Button onPress={() => navigation.navigate('Login')}>

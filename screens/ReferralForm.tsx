@@ -8,6 +8,8 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
 import CryptoJS from 'crypto-js';
+import { create } from 'xmlbuilder2';
+
 // Definir el tipo de navegación
 type ReferralFormNavigationProp = StackNavigationProp<RootStackParamList, 'ReferralForm'>;
 
@@ -32,8 +34,10 @@ const ReferralForm: React.FC = () => {
   const [vehicleStatus, setVehicleStatus] = useState(''); // Estado para el radio button
   const [vehicleBrand, setVehicleBrand] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
-  const [selectedDealerships, setSelectedDealerships] = useState<string[]>([]); // Almacena los dealerships seleccionados
-  const [isDealershipDropdownVisible, setDealershipDropdownVisible] = useState(false); // Dropdown visibility
+  const [selectedDealerships, setSelectedDealerships] = useState<string[]>([]);
+  const [selectedDealer, setSelectedDealer] = useState<string[]>([]);
+  const [isDealershipDropdownVisible, setDealershipDropdownVisible] = useState(false);
+  const [isDealerDropdownVisible, setDealerDropdownVisible] = useState(false);
   const [step, setStep] = useState(1);
   
   const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -70,14 +74,17 @@ const ReferralForm: React.FC = () => {
   const [vehicleStatusValid, setVehicleStatusValid] = useState(true);
   const [vehicleBrandValid, setVehicleBrandValid] = useState(true);
   const [vehicleModelValid, setVehicleModelValid] = useState(true);
-  const [dealershipsValid, setDealershipsValid] = useState(true); // Validación de dealerships
+  const [dealershipsValid, setDealershipsValid] = useState(true);
+  const [dealerValid, setDealerValid] = useState(true);
   const [loading, setLoading] = useState(false);
 
 
   const navigation = useNavigation<ReferralFormNavigationProp>();
 
   // Lista de opciones de dealerships
-  const dealerships = ['GM', 'Ford', 'Nissan', 'CDJR', 'Usados'];
+  const dealerships = ['GM', 'Ford', 'Nissan', 'CDJR'];
+  const dealer = ['Cabrera Hermanos 9677_2', 'Cabrera Bayamon 9675_5', 'Cabrera Chrysler 9675_3', 'Cabrera Ford 9675_4', 'Cabrera Nissan 9675_1'];
+
 
   // Función para validar los campos del primer paso
   const validateFirstStepInputs = () => {
@@ -147,6 +154,13 @@ const ReferralForm: React.FC = () => {
       setDealershipsValid(true);
     }
 
+    if (selectedDealer.length === 0) {
+      setDealerValid(false);
+      isValid = false;
+    } else {
+      setDealerValid(true);
+    }
+
     return isValid;
   };
 
@@ -156,6 +170,14 @@ const ReferralForm: React.FC = () => {
       prev.includes(dealership)
         ? prev.filter(d => d !== dealership)
         : [...prev, dealership]
+    );
+  };
+
+  const toggleDealer = (dealer: string) => {
+    setSelectedDealer(prev => 
+      prev.includes(dealer)
+        ? prev.filter(d => d !== dealer)
+        : [...prev, dealer]
     );
   };
 
@@ -193,36 +215,36 @@ const ReferralForm: React.FC = () => {
         console.log('Error: No se pudo obtener el ID del usuario autenticado.');
         return;
       }
-  
-      // Definir la fecha y el XML para enviar a DealerSocket.
       const fixedDate = '2024-10-21T12:00:00.000Z'; // Utiliza una fecha fija para coincidir en la prueba.
+      // Definir la fecha y el XML para enviar a DealerSocket.
       const xmlBody = `<adf>
-        <prospect>
-          <id sequence="1" source="Vendor-lead-id"><![CDATA[Test-00001]]></id>
-          <requestdate><![CDATA[${fixedDate}]]></requestdate>
-          <customer>
-            <contact>
-              <name part="full"><![CDATA[${firstName} ${lastName}]]></name>
-              <phone><![CDATA[${phoneNumber}]]></phone>
-              <email><![CDATA[${email}]]></email>
-            </contact>
-            <vehicle>
-              <status><![CDATA[${vehicleStatus}]]></status>
-              <brand><![CDATA[${vehicleBrand}]]></brand>
-              <model><![CDATA[${vehicleModel}]]></model>
-            </vehicle>
-            <dealership><![CDATA[${selectedDealerships.join(', ')}]]></dealership>
-          </customer>
-          <vendor>
-            <id source="DealerID"><![CDATA[7250_16]]></id>
-            <vendorname><![CDATA[Cabrera Grupo]]></vendorname>
-          </vendor>
-          <provider>
-            <name part="full"><![CDATA[test]]></name>
-          </provider>
-        </prospect>
-      </adf>`.trim();
-  
+      <prospect>
+        <id sequence="1" source="Vendor-lead-id"><![CDATA[Test-00001]]></id>
+        <requestdate><![CDATA[${fixedDate}]]></requestdate>
+        <customer>
+          <contact>
+            <name part="full"><![CDATA[${firstName} ${lastName}]]></name>
+            <phone><![CDATA[${phoneNumber}]]></phone>
+            <email><![CDATA[${email}]]></email>
+          </contact>
+          <vehicle>
+            <status><![CDATA[${vehicleStatus}]]></status>
+            <brand><![CDATA[${vehicleBrand}]]></brand>
+            <model><![CDATA[${vehicleModel}]]></model>
+          </vehicle>
+          <dealership><![CDATA[${selectedDealerships.join(', ')}]]></dealership>
+        </customer>
+        <vendor>
+          <id source="DealerID"><![CDATA[${selectedDealer}]]></id>
+          <vendorname><![CDATA[Cabrera Grupo]]></vendorname>
+        </vendor>
+        <provider>
+          <name part="full"><![CDATA[test]]></name>
+        </provider>
+      </prospect>
+    </adf>`.trim();
+
+      
       const publicKey = "678";
       const privateKey = "9DB91AB6-AD6F-440D-98A5-DC13ACAA3518";
   
@@ -239,8 +261,8 @@ const ReferralForm: React.FC = () => {
       const dealerResponse = await fetch('https://oemwebsecure.dealersocket.com/DSOEMLead/US/DCP/ADF/1/SalesLead/223IIV3839', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/xml',
-          'Authorization': authHeader,
+            'Content-Type': 'application/xml',
+            'Authorization': '861OST7574:967VHW1918'
         },
         body: xmlBody,
       });
@@ -290,10 +312,6 @@ const ReferralForm: React.FC = () => {
       navigation.navigate('SuccessAnimation', { nextScreen: 'ReferralForm' });
     }
   };
-  
-  
-  
-
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -327,14 +345,14 @@ const ReferralForm: React.FC = () => {
               />
               {!lastNameValid && <ErrorText>Last Name invalid</ErrorText>}
               <InputLabel>Phone number</InputLabel>
-<StyledInput
-  placeholder="+1"
-  keyboardType="phone-pad"
-  value={phoneNumber}
-  onChangeText={handlePhoneNumberChange}
-  style={{ borderColor: phoneNumberValid ? colors.primary : 'red' }}
-/>
-{!phoneNumberValid && <ErrorText>Phone number invalid (10 digits required)</ErrorText>}
+                <StyledInput
+                  placeholder="+1"
+                  keyboardType="phone-pad"
+                  value={phoneNumber}
+                  onChangeText={handlePhoneNumberChange}
+                  style={{ borderColor: phoneNumberValid ? colors.primary : 'red' }}
+                />
+                {!phoneNumberValid && <ErrorText>Phone number invalid (10 digits required)</ErrorText>}
 
               <InputLabel>E-mail</InputLabel>
               <StyledInput 
@@ -354,6 +372,80 @@ const ReferralForm: React.FC = () => {
             </>
           ) : (
             <>
+
+              {/* Campo para seleccionar dealer */}
+              <InputLabel>Select Dealer</InputLabel>
+              <TouchableOpacity
+                style={{
+                  borderColor: dealerValid ? colors.primary : 'red',
+                  borderWidth: 1,
+                  borderRadius: 10,
+                  padding: 10,
+                  marginVertical: 5,
+                  backgroundColor: '#fff',
+                  width: '100%',
+                }}
+                onPress={() => setDealerDropdownVisible(true)}
+              >
+                <Text>{selectedDealer.length > 0 ? selectedDealer.join(', ') : 'Select Dealer'}</Text>
+              </TouchableOpacity>
+              {!dealerValid && <ErrorText>Please select at least one dealer</ErrorText>}
+
+              {/* Dropdown de dealerships */}
+              <Modal
+                transparent={true}
+                visible={isDealerDropdownVisible}
+                animationType="fade"
+                onRequestClose={() => setDealerDropdownVisible(false)}
+              >
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                  }}
+                  onPress={() => setDealerDropdownVisible(false)}
+                >
+                  <View
+                    style={{
+                      width: '80%',
+                      backgroundColor: 'white',
+                      borderRadius: 10,
+                      padding: 10,
+                    }}
+                  >
+                    {dealer.map(dealer => (
+                      <TouchableOpacity
+                        key={dealer}
+                        style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}
+                        onPress={() => toggleDealer(dealer)}
+                      >
+                        <View
+                          style={{
+                            height: 20,
+                            width: 20,
+                            borderRadius: 5,
+                            borderWidth: 1,
+                            borderColor: '#000',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginRight: 10,
+                            backgroundColor: selectedDealerships.includes(dealer) ? '#000' : '#fff',
+                          }}
+                        >
+                          {selectedDealerships.includes(dealer) && (
+                            <Ionicons name="checkmark" size={16} color="#fff" />
+                          )}
+                        </View>
+                        <Text>{dealer}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </TouchableOpacity>
+              </Modal>
+
+
               <InputLabel>Vehicle Status</InputLabel>
               <TouchableOpacity
                 onPress={() => setDropdownVisible(true)} // Abre el modal
@@ -562,12 +654,12 @@ const ReferralForm: React.FC = () => {
                   <Ionicons name="arrow-back" size={24} color="white" />
                 </BackButton>
                 <SaveButton onPress={saveReferral} disabled={loading}>
-  {loading ? (
-    <ActivityIndicator size="small" color="#fff" />
-  ) : (
-    <SaveButtonText>Submit</SaveButtonText>
-  )}
-</SaveButton>
+                    {loading ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <SaveButtonText>Submit</SaveButtonText>
+                    )}
+                  </SaveButton>
 
               </ButtonContainer>
             </>

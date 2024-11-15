@@ -1,0 +1,130 @@
+import React, { useState } from 'react';
+import { View, TextInput, Button, Text, Alert, Modal, TouchableOpacity, FlatList } from 'react-native';
+import axios from 'axios';
+import { create } from 'xmlbuilder2';
+
+const App = () => {
+  const [email, setEmail] = useState('');
+  const [vendorId, setVendorId] = useState('');
+  const [vendorName, setVendorName] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [providerName, setProviderName] = useState('');
+  const [service, setService] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+ 
+  const vendors = [
+    { id: '9677_2', name: 'Cabrera Hermanos' },
+    { id: '9675_5', name: 'Cabrera Usados Bayamon' },
+    { id: '9675_3', name: 'Cabrera Chrysler' },
+    { id: '9675_4', name: 'Cabrera Ford' },
+    { id: '9675_1', name: 'Cabrera Nissan' },
+  ];
+
+  const handleVendorSelect = (vendor: { id: any; name: any; }) => {
+    setVendorId(vendor.id);
+    setVendorName(vendor.name);
+    setModalVisible(false);
+  };
+
+  const handleSubmit = async () => {
+    const xml = create({ version: '1.0', encoding: 'UTF-8' })
+      .ele('adf')
+        .ele('prospect')
+          .ele('id', { sequence: "1", source: "Vendor-lead-id" }).txt('test-00001').up()
+          .ele('requestdate').txt(new Date().toISOString()).up()
+          .ele('customer')
+            .ele('contact')
+              .ele('email').txt(email).up()
+            .up()
+          .up()
+          .ele('vendor')
+            .ele('id', { source: "DealerId" }).txt(vendorId).up()
+            .ele('vendorname').txt(vendorName).up()
+            .ele('contact')
+              .ele('name', { part: "full" }).txt(contactName).up()
+            .up()
+          .up()
+          .ele('provider')
+            .ele('name', { part: "full" }).txt(providerName).up()
+            .ele('service').txt(service).up()
+          .up()
+        .up()
+      .end({ prettyPrint: true });
+
+    try {
+      const response = await axios.post(
+        'https://oemwebsecure.dealersocket.com/DSOEMLead/US/DCP/ADF/1/SalesLead/223IIV3839',
+        xml,
+        {
+          headers: {
+            'Content-Type': 'application/xml',
+            'Authorization': '861OST7574:967VHW1918'
+          }
+        }
+      );
+      console.log(response.data);
+      Alert.alert("Response", "Request sent successfully. Check console for response.");
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "There was an error sending the request.");
+    }
+  };
+
+  return (
+    <View style={{ padding: 20 }}>
+      <TextInput
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        style={{ borderBottomWidth: 1, marginBottom: 10 }}
+      />
+      <TouchableOpacity onPress={() => setModalVisible(true)} style={{ borderBottomWidth: 1, marginBottom: 10, paddingVertical: 12 }}>
+        <Text>{vendorName || "Select Vendor"}</Text>
+      </TouchableOpacity>
+      <TextInput
+        placeholder="Contact Name"
+        value={contactName}
+        onChangeText={setContactName}
+        style={{ borderBottomWidth: 1, marginBottom: 10 }}
+      />
+      <TextInput
+        placeholder="Provider Name"
+        value={providerName}
+        onChangeText={setProviderName}
+        style={{ borderBottomWidth: 1, marginBottom: 10 }}
+      />
+      <TextInput
+        placeholder="Service"
+        value={service}
+        onChangeText={setService}
+        style={{ borderBottomWidth: 1, marginBottom: 10 }}
+      />
+      <Button title="Submit" onPress={handleSubmit} />
+
+      <Modal
+        transparent={true}
+        visible={modalVisible}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <View style={{ width: 300, backgroundColor: 'white', padding: 20, borderRadius: 10 }}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>Select Vendor</Text>
+            <FlatList
+              data={vendors}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity onPress={() => handleVendorSelect(item)} style={{ paddingVertical: 10 }}>
+                  <Text>{item.name}</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <Button title="Close" onPress={() => setModalVisible(false)} />
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+export default App;
