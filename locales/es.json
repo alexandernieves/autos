@@ -1,0 +1,33 @@
+{
+  "get_started": "Comenzar",
+  "login": "Iniciar sesión",
+  "pending": "Pendiente",
+  "share_qr": "Compartir QR",
+  "sign_up_referral": "¡Regístrate, refiere amigos y gana dinero cuando ellos compren un coche!",
+  "log_in": "Iniciar sesión",
+  "sign_up": "Registrarse",
+  "forgot_password": "¿Olvidaste tu contraseña?",
+  "password_invalid": "Contraseña inválida",
+  "email_invalid": "Correo electrónico inválido",
+  "enter_password_placeholder": "Ingresa la contraseña",
+  "enter_email_or_username_placeholder": "Ingresa el correo electrónico o nombre de usuario",
+    "dont_have_account": "¿No tienes una cuenta? ",
+  "already_have_account": "¿Ya tienes una cuenta? ",
+  "enter_name": "Ingresa tu nombre",
+  "enter_email": "Ingresa tu correo electrónico",
+  "password_required": "La contraseña es requerida",
+  "i_have_read_and_accept": "He leído y acepto",
+  "terms_and_conditions": "los términos y condiciones",
+  "and": "y",
+  "privacy_policies": "Políticas de privacidad"
+
+
+
+
+
+
+
+
+
+
+}

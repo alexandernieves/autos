@@ -1,0 +1,33 @@
+{
+  "get_started": "Get started",
+  "login": "Login",
+  "pending": "Pending",
+  "share_qr": "Share QR",
+  "sign_up_referral": "Sign up, refer friends, and get paid when they buy a car!",
+  "log_in": "Log in",
+  "sign_up": "Sign Up",
+  "forgot_password": "Forgot Password?",
+  "password_invalid": "Password invalid",
+  "email_invalid": "Email invalid",
+  "enter_password_placeholder": "Enter password",
+  "enter_email_or_username_placeholder": "Enter email or username",
+    "dont_have_account": "Don't have an account? ",
+  "already_have_account": "Already have an account? ",
+  "enter_name": "Enter your name",
+  "enter_email": "Enter your email",
+  "create_password": "Create a password",
+  "password_required": "Password is required",
+  "i_have_read_and_accept": "I have read and accept",
+  "terms_and_conditions": "the terms and conditions",
+  "and": "and",
+  "privacy_policies": "Privacy Policies"
+
+
+
+
+
+
+
+
+
+}

@@ -24,6 +24,9 @@ import PreloaderCircle from './components/PreloaderCircle';
 import UserTable from './screens/UserTable';  // Importa el nuevo componente
 import ActiveUsersTable from './screens/ActiveUsersTable';  // Importa el nuevo componente
 import ReferralTable from './screens/ReferralTable';  // Importa el nuevo componente
+import './i18n'; // Importar el archivo de configuración de i18next
+import 'intl-pluralrules'; // Importar el polyfill para pluralización
+
 import { CustomDrawerNavigator } from './screens/CustomDrawerNavigator';  // Asegúrate de importar el componente correctamente
 
 export type RootStackParamList = {

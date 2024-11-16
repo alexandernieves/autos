@@ -12,6 +12,7 @@ import InviteFriendsScreen from './InviteFriendsScreen';
 import colors from '../colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next'; // Importar useTranslation
 
 const Drawer = createDrawerNavigator();
 type AdminScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Admin'>;
@@ -41,9 +42,10 @@ function decodeJWT(token: string): DecodedToken | null {
 }
 
 function CustomDrawerContent(props: DrawerContentComponentProps) {
+  const { t, i18n } = useTranslation(); // Usar el hook de traducción
   const [notificationsEnabled, setNotificationsEnabled] = useState(true); // Switch activado por defecto
   const [isLanguageMenuOpen, setLanguageMenuOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('English');
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language === 'en' ? 'English' : 'Español'); // Setear idioma inicial según el idioma actual
   const navigation = useNavigation<AdminScreenNavigationProp>();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -103,9 +105,14 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
   };
 
   const changeLanguage = (language: string) => {
-    setSelectedLanguage(language);
+    setSelectedLanguage(language); // Cambia el idioma seleccionado visualmente
+    const langCode = language === 'English' ? 'en' : 'es';
+    i18n.changeLanguage(langCode) // Cambia el idioma en i18next
+      .then(() => console.log(`Idioma cambiado a ${langCode}`))
+      .catch(err => console.error('Error al cambiar el idioma:', err));
   };
-
+  
+  
   return (
     <DrawerContentScrollView {...props}>
       <DrawerContentContainer>
@@ -115,7 +122,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
               <Ionicons name="person" size={40} color="#fff" />
             </AvatarIcon>
             <UserInfo>
-              <UsernameText>Hi, {username}</UsernameText>
+              <UsernameText>{t('Hi')}, {username}</UsernameText>
               <EmailText>{email}</EmailText>
             </UserInfo>
           </DrawerHeader>
@@ -125,7 +132,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
               <IconContainer>
                 <FontAwesome name="qrcode" size={24} color={colors.primary} />
               </IconContainer>
-              <DrawerLabel>Share QR</DrawerLabel>
+              <DrawerLabel>{t('share_qr')}</DrawerLabel>
               <ArrowIcon name="chevron-right" size={24} color={colors.primary} />
             </DrawerItemStyled>
 
@@ -133,7 +140,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
               <IconContainer>
                 <MaterialIcons name="notifications" size={24} color={colors.primary} />
               </IconContainer>
-              <DrawerLabel>Notifications</DrawerLabel>
+              <DrawerLabel>{t('Notifications')}</DrawerLabel>
               <Switch
                 value={notificationsEnabled}
                 onValueChange={setNotificationsEnabled}
@@ -147,7 +154,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
               <IconContainer>
                 <FontAwesome name="globe" size={24} color={colors.primary} />
               </IconContainer>
-              <DrawerLabel>Language</DrawerLabel>
+              <DrawerLabel>{t('Language')}</DrawerLabel>
               <ArrowIcon name={isLanguageMenuOpen ? 'chevron-up' : 'chevron-down'} size={24} color={colors.primary} />
             </DrawerItemStyled>
 
@@ -157,23 +164,20 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
                   <SubMenuLabel>English</SubMenuLabel>
                   {selectedLanguage === 'English' && <CheckIcon name="check" size={20} color={colors.primary} />}
                 </SubMenuItem>
+                <SubMenuItem onPress={() => changeLanguage('Español')}>
+                  <SubMenuLabel>Español</SubMenuLabel>
+                  {selectedLanguage === 'Español' && <CheckIcon name="check" size={20} color={colors.primary} />}
+                </SubMenuItem>
               </Animated.View>
             )}
 
-            {/* <DrawerItemStyled onPress={() => props.navigation.navigate("Settings")}>
-              <IconContainer>
-                <FontAwesome name="cog" size={24} color={colors.primary} />
-              </IconContainer>
-              <DrawerLabel>Settings</DrawerLabel>
-              <ArrowIcon name="chevron-right" size={24} color={colors.primary} />
-            </DrawerItemStyled> */}
           </DrawerItemContainer>
         </View>
 
         <LogoutButtonContainer>
           <LogoutButton onPress={handleLogout}>
             <FontAwesome name="sign-out" size={24} color="#fff" />
-            <LogoutButtonText>Log Out</LogoutButtonText>
+            <LogoutButtonText>{t('Log Out')}</LogoutButtonText>
           </LogoutButton>
         </LogoutButtonContainer>
       </DrawerContentContainer>
@@ -192,6 +196,7 @@ export function CustomDrawerNavigator() {
     </Drawer.Navigator>
   );
 }
+
 
 // Estilos personalizados
 const DrawerContentContainer = styled.View`

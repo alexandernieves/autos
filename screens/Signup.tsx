@@ -14,6 +14,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios'; // Para manejar las peticiones al servidor
+import { t } from "i18next";
 
 // Definir el tipo DecodedToken (puedes ajustar este tipo según el contenido de tu JWT)
 type DecodedToken = {
@@ -263,8 +264,8 @@ export default function Signup() {
       <InputContainer style={[nameError && { borderColor: 'red', borderWidth: 1.5 }, shakeStyle(nameShake)]}>
         <Icon name="person-outline" size={24} color="#888" />
         <StyledInput
-          placeholder="Enter your name"
-          autoCapitalize="none"
+  placeholder={t('enter_name')}
+  autoCapitalize="none"
           autoFocus={true}
           value={name}
           onChangeText={setName}
@@ -275,8 +276,8 @@ export default function Signup() {
       <InputContainer style={[emailError && { borderColor: 'red', borderWidth: 1.5 }, shakeStyle(emailShake)]}>
         <Icon name="mail-outline" size={24} color="#888" />
         <StyledInput
-          placeholder="Enter your email"
-          autoCapitalize="none"
+  placeholder={t('enter_email')}
+  autoCapitalize="none"
           keyboardType="email-address"
           textContentType="emailAddress"
           value={email}
@@ -288,8 +289,8 @@ export default function Signup() {
       <InputContainer style={[passwordError && { borderColor: 'red', borderWidth: 1.5 }, shakeStyle(passwordShake)]}>
         <Icon name="lock-closed-outline" size={24} color="#888" />
         <StyledInput
-          placeholder="Create a password"
-          autoCapitalize="none"
+  placeholder={t('create_password')}
+  autoCapitalize="none"
           autoCorrect={false}
           secureTextEntry={!passwordVisible}
           textContentType="password"
@@ -305,17 +306,17 @@ export default function Signup() {
           />
         </TouchableOpacity>
       </InputContainer>
-      {passwordError && <ErrorText>Password is required</ErrorText>}
+      {passwordError && <ErrorText>{t('password_required')}</ErrorText>}
 
       <TermsContainer>
         <CustomCheckboxComponent />
-        <TermsText>I have read and accept</TermsText>
+        <TermsText>{t('i_have_read_and_accept')}</TermsText>
         <TouchableOpacity>
-          <LinkText>the terms and conditions</LinkText>
+          <LinkText>{t('terms_and_conditions')}</LinkText>
         </TouchableOpacity>
-        <TermsText> and </TermsText>
+        <TermsText> {t('and')} </TermsText>
         <TouchableOpacity>
-          <LinkText>privacy policies</LinkText>
+          <LinkText>{t('privacy_policies')}</LinkText>
         </TouchableOpacity>
       </TermsContainer>
 
@@ -327,7 +328,7 @@ export default function Signup() {
           {isLoading ? (
             <ActivityIndicator size="small" color="#FFF" />
           ) : (
-            <RoundedButtonText>Sign Up</RoundedButtonText>
+            <RoundedButtonText>{t('sign_up')}</RoundedButtonText>
           )}
         </RoundedButton>
       </ButtonContainer>

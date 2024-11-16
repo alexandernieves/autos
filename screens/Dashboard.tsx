@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { ScrollView, ActivityIndicator, Alert } from "react-native";
+import { ScrollView, ActivityIndicator, Alert, Button } from "react-native";
 import { FontAwesome } from '@expo/vector-icons';
 import styled from 'styled-components/native';
 import colors from '../colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
+
 
 const Dashboard: React.FC = () => {
   const [totalReferrals, setTotalReferrals] = useState(0);
@@ -12,6 +14,7 @@ const Dashboard: React.FC = () => {
   const [closedReferrals, setClosedReferrals] = useState(0); // Estado para referidos Closed
   const [lostReferrals, setLostReferrals] = useState(0); // Estado para referidos Lost
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   // Función para obtener los datos desde el backend
   useEffect(() => {
@@ -73,6 +76,7 @@ const Dashboard: React.FC = () => {
         <RowContainer>
           <ReferralBoxSquare>
             {/* conectar con contacted 221 */}
+
             <SmallBoxTitle>Booked</SmallBoxTitle>
             <BoxIconAndValue>
               <FontAwesome name="check-circle" size={50} color={colors.primary} />
@@ -86,7 +90,7 @@ const Dashboard: React.FC = () => {
 
           <ReferralBoxSquare>
             {/* conectar con pending 220 */}
-            <SmallBoxTitle>Pending</SmallBoxTitle>
+            <SmallBoxTitle>{t('pending')}</SmallBoxTitle>
             <BoxIconAndValue>
               <FontAwesome name="hourglass-half" size={50} color={colors.primary} />
               {loading ? (

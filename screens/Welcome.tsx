@@ -2,6 +2,7 @@ import React from 'react';
 import { Image } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import styled from 'styled-components/native';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../App';
 
 const Container = styled.View`
@@ -84,6 +85,7 @@ const SignUpText = styled.Text`
 
 export default function Welcome() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { t } = useTranslation();
 
   return (
     <Container>
@@ -96,10 +98,10 @@ export default function Welcome() {
       </CurvedContainer>
       <Footer>
         <Button onPress={() => navigation.navigate('Login')}>
-          <ButtonText>Get started</ButtonText>
+          <ButtonText>{t('get_started')}</ButtonText>
         </Button>
         <LoginText>
-        Sign up, refer friends, and get paid{"\n"}when they buy a car!
+        {t('sign_up_referral')}
         </LoginText>
       </Footer>
     </Container>

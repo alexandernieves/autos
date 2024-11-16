@@ -21,6 +21,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
+import { t } from "i18next";
 
 const googleIcon = require("../assets/google.png");
 const background = require("../assets/volante_ford.jpg");
@@ -212,6 +213,8 @@ function decodeJWT(token: string): DecodedToken | null {
   }
 }
 
+
+
 // Función para validar el email
 const validateEmail = (email: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -376,11 +379,11 @@ export default function Login({ navigation }: LoginProps) {
           <AnimatedSlider style={{ left: sliderPosition }} />
 
           <ButtonOption onPress={() => setIsLogin(true)}>
-            <Text style={{ color: isLogin ? "#fff" : "#000", fontWeight: "bold" }}>Log in</Text>
+            <Text style={{ color: isLogin ? "#fff" : "#000", fontWeight: "bold" }}>{t('log_in')}</Text>
           </ButtonOption>
 
           <ButtonOption onPress={() => setIsLogin(false)}>
-            <Text style={{ color: !isLogin ? "#fff" : "#000", fontWeight: "bold" }}>Sign Up</Text>
+            <Text style={{ color: !isLogin ? "#fff" : "#000", fontWeight: "bold" }}>{t('sign_up')}</Text>
           </ButtonOption>
         </ButtonOptionContainer>
 
@@ -395,21 +398,21 @@ export default function Login({ navigation }: LoginProps) {
               <InputContainer style={emailError && { borderColor: 'red', borderWidth: 1.5 }}>
                 <Icon name="mail-outline" size={24} color="#888" />
                 <StyledInput
-                  placeholder="Enter email or username"
+                    placeholder={t('enter_email_or_username_placeholder')}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   value={email}
                   onChangeText={setEmail}
                 />
               </InputContainer>
-              {emailError && <ErrorText>Email invalid</ErrorText>}
+              {emailError && <ErrorText>{t('email_invalid')}</ErrorText>}
             </Animated.View>
 
             <Animated.View style={{ transform: [{ translateX: passwordShakeAnimation }] }}>
               <InputContainer style={passwordError && { borderColor: 'red', borderWidth: 1.5 }}>
                 <Icon name="lock-closed-outline" size={24} color="#888" />
                 <StyledInput
-                  placeholder="Enter password"
+                    placeholder={t('enter_password_placeholder')}
                   autoCapitalize="none"
                   secureTextEntry={!passwordVisible}
                   value={password}
@@ -419,18 +422,18 @@ export default function Login({ navigation }: LoginProps) {
                   <Ionicons name={passwordVisible ? "eye-outline" : "eye-off-outline"} size={24} color="#888" />
                 </TouchableOpacity>
               </InputContainer>
-              {passwordError && <ErrorText>Password invalid</ErrorText>}
+              {passwordError && <ErrorText>{t('password_invalid')}</ErrorText>}
             </Animated.View>
 
             <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-              <ForgotPasswordText>Forgot Password?</ForgotPasswordText>
+              <ForgotPasswordText>{t('forgot_password')}</ForgotPasswordText>
             </TouchableOpacity>
             <ButtonContainer>
               <RoundedButton onPress={handleLogin}>
                 {isLoading ? (
                   <ActivityIndicator size="small" color="#FFF" />
                 ) : (
-                  <RoundedButtonText>Log in</RoundedButtonText>
+                  <RoundedButtonText>{t('log_in')}</RoundedButtonText>
                 )}
               </RoundedButton>
             </ButtonContainer>
@@ -440,9 +443,13 @@ export default function Login({ navigation }: LoginProps) {
         )}
 
         <Footer>
-          <FooterText>{isLogin ? "Don't have an account? " : "Already have an account? "}</FooterText>
+        <FooterText>
+  {isLogin ? t('dont_have_account') : t('already_have_account')}
+</FooterText>
           <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-            <SignUpText>{isLogin ? "Sign Up" : "Log in"}</SignUpText>
+          <SignUpText>
+  {isLogin ? t('sign_up') : t('log_in')}
+</SignUpText>
           </TouchableOpacity>
         </Footer>
       </Card>
