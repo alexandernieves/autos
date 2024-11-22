@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import colors from '../colors';
 import { RootStackParamList } from '../App';  
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useTranslation } from 'react-i18next';
 
 // Tipo para la navegación
 type AdminScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Admin'>;
@@ -42,6 +43,8 @@ const Profile: React.FC = () => {
   const [username, setUsername] = useState('User');
   const [email, setEmail] = useState('');
   const navigation = useNavigation<AdminScreenNavigationProp>();
+  const { t } = useTranslation();
+
 
   // Función para desloguear al usuario
   const handleLogout = async () => {
@@ -140,7 +143,8 @@ const Profile: React.FC = () => {
           ) : (
             <CountText>{totalReferrals}</CountText>
           )}
-          <LabelText>Total Referrals</LabelText>
+          <LabelText>{t('Total_Referrals')}
+          </LabelText>
         </ReferralsCount>
       </StatsContainer>
 
@@ -149,7 +153,8 @@ const Profile: React.FC = () => {
           <MenuIconContainer>
             <Ionicons name="log-out" size={20} color={colors.primary} />
           </MenuIconContainer>
-          <MenuText>Log Out</MenuText>
+          <MenuText>{t('Log_Out')}
+          </MenuText>
           <ArrowIcon>
             <Ionicons name="chevron-forward" size={20} color={colors.primary} />
           </ArrowIcon>

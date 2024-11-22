@@ -4,6 +4,7 @@ import styled from 'styled-components/native';
 import Header from './Header';
 import QRCode from 'react-native-qrcode-svg'; // Importamos la librería QR
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 
 const QRContainer = styled.View`
   flex: 1;
@@ -117,6 +118,8 @@ const QRScreen: React.FC = ({ navigation }: any) => {
   const closeModal = () => {
     setModalVisible(false);
   };
+  const { t } = useTranslation();
+
 
   const shareLink = async () => {
     try {
@@ -145,7 +148,7 @@ const QRScreen: React.FC = ({ navigation }: any) => {
 
       <QRContainer>
         <QRName>
-          Spread the word about our referral program by sharing the app with friends. While sharing the app is a great way to let them know, remember that to earn your commission, you need to enter their referral details directly.
+        {t('Referral_program_message')}
         </QRName>
 
         <QRCodeContainer>
@@ -159,11 +162,12 @@ const QRScreen: React.FC = ({ navigation }: any) => {
 
         <ActionButton onPress={shareLink}>
           <Ionicons name="share-outline" size={24} color="#fff" />
-          <ActionButtonText>Share Link</ActionButtonText>
+          <ActionButtonText>{t('Share_Link')}
+          </ActionButtonText>
         </ActionButton>
 
         <QRSubtitle>
-          Important: To earn a commission, make sure you submit your friend’s information through the referral form. Sharing the app alone will not qualify for payment.
+        {t('Important_referral_note')}
         </QRSubtitle>
 
         <TouchableOpacity style={{ marginTop: 25 }} onPress={navigateToHome}>

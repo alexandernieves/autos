@@ -19,7 +19,55 @@
   "i_have_read_and_accept": "He leído y acepto",
   "terms_and_conditions": "los términos y condiciones",
   "and": "y",
-  "privacy_policies": "Políticas de privacidad"
+  "privacy_policies": "Políticas de privacidad",
+  "Notifications": "Notificaciones",
+  "Language": "Idioma",
+  "Hi": "Hola",
+  "Total_Referrals": "Referidos Totales",
+  "Booked": "Reservado",
+  "Sold": "Vendido",
+  "Lost": "Perdido",
+  "Dashboard": "Tablero",
+  "Referrals": "Referidos",
+"Home": "Inicio",
+"Profile": "Perfil",
+"Log_Out": "Cerrar sesión",
+"Enter_your_friends_details": "Ingresa los detalles de tu amigo a continuación para que el concesionario pueda ponerse en contacto y ayudarlos a encontrar su próximo vehículo.",
+
+"Referral_confirmation": "Al enviar esta referencia, confirmas que tienes su permiso para compartir sus detalles de contacto con nosotros.",
+"Commission_steps": "¡Estás a solo unos pasos de ganar una comisión!",
+"First_Name": "Nombre",
+"Last_Name": "Apellido",
+"Phone_Number": "Número de Teléfono",
+"E_mail": "Correo Electrónico",
+"Vehicle_Status": "Estado del Vehículo",
+"Vehicle_Brand": "Marca del Vehículo",
+"Vehicle_Model": "Modelo del Vehículo",
+"Dealerships": "Concesionarios",
+"New": "Nuevo",
+"Used": "Usado",
+"Add_Refer": "Referidos",
+"Referral_program_message": "Difunde nuestro programa de referidos compartiendo la app con tus amigos. Aunque compartir la app es una excelente manera de informarlos, recuerda que para ganar tu comisión, debes ingresar sus datos de referencia directamente.",
+"Important_referral_note": "Importante: Para ganar una comisión, asegúrate de enviar la información de tu amigo a través del formulario de referidos. Solo compartir la app no calificará para el pago.",
+"Share_Link": "Compartir Enlace",
+"No_Referrals_Yet": "Aún no tienes referidos"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

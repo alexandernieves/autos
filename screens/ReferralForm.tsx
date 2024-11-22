@@ -9,6 +9,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
 import CryptoJS from 'crypto-js';
 import { create } from 'xmlbuilder2';
+import { useTranslation } from 'react-i18next';
+
 
 // Definir el tipo de navegación
 type ReferralFormNavigationProp = StackNavigationProp<RootStackParamList, 'ReferralForm'>;
@@ -39,7 +41,8 @@ const ReferralForm: React.FC = () => {
   const [isDealershipDropdownVisible, setDealershipDropdownVisible] = useState(false);
   const [isDealerDropdownVisible, setDealerDropdownVisible] = useState(false);
   const [step, setStep] = useState(1);
-  
+  const { t } = useTranslation();
+
   const [isDropdownVisible, setDropdownVisible] = useState(false);
 
   // Estados para las validaciones del primer paso
@@ -82,9 +85,14 @@ const ReferralForm: React.FC = () => {
   const navigation = useNavigation<ReferralFormNavigationProp>();
 
   // Lista de opciones de dealerships
-  const dealerships = ['GM', 'Ford', 'Nissan', 'CDJR'];
-  const dealer = ['Cabrera Hermanos 9677_2', 'Cabrera Bayamon 9675_5', 'Cabrera Chrysler 9675_3', 'Cabrera Ford 9675_4', 'Cabrera Nissan 9675_1'];
-
+  const dealerships = [
+    { name: 'Cabrera Hermanos', id: '9677_2' },
+    { name: 'Cabrera Bayamon', id: '9675_5' },
+    { name: 'Cabrera Chrysler', id: '9675_3' },
+    { name: 'Cabrera Ford', id: '9675_4' },
+    { name: 'Cabrera Nissan', id: '9675_1' },
+  ];
+  
 
   // Función para validar los campos del primer paso
   const validateFirstStepInputs = () => {
@@ -166,20 +174,9 @@ const ReferralForm: React.FC = () => {
 
   // Función para manejar la selección de dealerships
   const toggleDealership = (dealership: string) => {
-    setSelectedDealerships(prev => 
-      prev.includes(dealership)
-        ? prev.filter(d => d !== dealership)
-        : [...prev, dealership]
-    );
+    setSelectedDealerships([dealership]); // Reemplaza cualquier selección previa con la nueva
   };
-
-  const toggleDealer = (dealer: string) => {
-    setSelectedDealer(prev => 
-      prev.includes(dealer)
-        ? prev.filter(d => d !== dealer)
-        : [...prev, dealer]
-    );
-  };
+  
 
   const nextStep = () => {
     if (validateFirstStepInputs()) {
@@ -189,11 +186,6 @@ const ReferralForm: React.FC = () => {
 
   const prevStep = () => {
     setStep(1);
-  };
-  const generateHmacHash = (text: any, secretKey: any) => {
-    const utf8Text = CryptoJS.enc.Utf8.parse(text);
-    const hmac = CryptoJS.HmacSHA256(utf8Text, secretKey);
-    return CryptoJS.enc.Base64.stringify(hmac);
   };
 
   
@@ -232,7 +224,7 @@ const ReferralForm: React.FC = () => {
             <brand><![CDATA[${vehicleBrand}]]></brand>
             <model><![CDATA[${vehicleModel}]]></model>
           </vehicle>
-          <dealership><![CDATA[${selectedDealerships.join(', ')}]]></dealership>
+    <dealership><![CDATA[${selectedDealerships}]]></dealership> <!-- Envia solo el ID -->
         </customer>
         <vendor>
           <id source="DealerID"><![CDATA[${selectedDealer}]]></id>
@@ -320,14 +312,15 @@ const ReferralForm: React.FC = () => {
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         <Container>
           {step === 1 ? (
-            <Title>Enter your friend’s details below so the dealership can get in touch and assist them with finding their next vehicle.</Title>
+            <Title>{t('Enter_your_friends_details')}</Title>
           ) : (
-            <FooterText>By submitting this referral, you confirm that you have their permission to share their contact details with us.</FooterText>
+            <FooterText>{t('Referral_confirmation')}
+</FooterText>
           )}
 
           {step === 1 ? (
             <>
-              <InputLabel>First Name</InputLabel>
+              <InputLabel>{t('First_Name')}</InputLabel>
               <StyledInput 
                 placeholder="Enter your first name" 
                 value={firstName} 
@@ -336,7 +329,8 @@ const ReferralForm: React.FC = () => {
               />
               {!firstNameValid && <ErrorText>First Name invalid</ErrorText>}
 
-              <InputLabel>Last Name</InputLabel>
+              <InputLabel>{t('Last_Name')}
+              </InputLabel>
               <StyledInput 
                 placeholder="Enter your last name" 
                 value={lastName} 
@@ -344,7 +338,8 @@ const ReferralForm: React.FC = () => {
                 style={{ borderColor: lastNameValid ? colors.primary : 'red' }}
               />
               {!lastNameValid && <ErrorText>Last Name invalid</ErrorText>}
-              <InputLabel>Phone number</InputLabel>
+              <InputLabel>{t('Phone_Number')}
+              </InputLabel>
                 <StyledInput
                   placeholder="+1"
                   keyboardType="phone-pad"
@@ -354,7 +349,8 @@ const ReferralForm: React.FC = () => {
                 />
                 {!phoneNumberValid && <ErrorText>Phone number invalid (10 digits required)</ErrorText>}
 
-              <InputLabel>E-mail</InputLabel>
+              <InputLabel>{t('E_mail')}
+              </InputLabel>
               <StyledInput 
                 placeholder="Enter your email" 
                 keyboardType="email-address" 
@@ -368,85 +364,13 @@ const ReferralForm: React.FC = () => {
                 <Ionicons name="arrow-forward" size={24} color="white" />
               </SubmitButton>
 
-              <FooterText>You’re just a few steps away from earning a commission!</FooterText>
+              <FooterText>{t('Commission_steps')}
+              </FooterText>
             </>
           ) : (
             <>
-
-              {/* Campo para seleccionar dealer */}
-              <InputLabel>Select Dealer</InputLabel>
-              <TouchableOpacity
-                style={{
-                  borderColor: dealerValid ? colors.primary : 'red',
-                  borderWidth: 1,
-                  borderRadius: 10,
-                  padding: 10,
-                  marginVertical: 5,
-                  backgroundColor: '#fff',
-                  width: '100%',
-                }}
-                onPress={() => setDealerDropdownVisible(true)}
-              >
-                <Text>{selectedDealer.length > 0 ? selectedDealer.join(', ') : 'Select Dealer'}</Text>
-              </TouchableOpacity>
-              {!dealerValid && <ErrorText>Please select at least one dealer</ErrorText>}
-
-              {/* Dropdown de dealerships */}
-              <Modal
-                transparent={true}
-                visible={isDealerDropdownVisible}
-                animationType="fade"
-                onRequestClose={() => setDealerDropdownVisible(false)}
-              >
-                <TouchableOpacity
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                  }}
-                  onPress={() => setDealerDropdownVisible(false)}
-                >
-                  <View
-                    style={{
-                      width: '80%',
-                      backgroundColor: 'white',
-                      borderRadius: 10,
-                      padding: 10,
-                    }}
-                  >
-                    {dealer.map(dealer => (
-                      <TouchableOpacity
-                        key={dealer}
-                        style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}
-                        onPress={() => toggleDealer(dealer)}
-                      >
-                        <View
-                          style={{
-                            height: 20,
-                            width: 20,
-                            borderRadius: 5,
-                            borderWidth: 1,
-                            borderColor: '#000',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            marginRight: 10,
-                            backgroundColor: selectedDealerships.includes(dealer) ? '#000' : '#fff',
-                          }}
-                        >
-                          {selectedDealerships.includes(dealer) && (
-                            <Ionicons name="checkmark" size={16} color="#fff" />
-                          )}
-                        </View>
-                        <Text>{dealer}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </TouchableOpacity>
-              </Modal>
-
-
-              <InputLabel>Vehicle Status</InputLabel>
+              <InputLabel>{t('Vehicle_Status')}
+              </InputLabel>
               <TouchableOpacity
                 onPress={() => setDropdownVisible(true)} // Abre el modal
                 style={{
@@ -519,7 +443,8 @@ const ReferralForm: React.FC = () => {
                             />
                           )}
                         </View>
-                        <Text>New</Text>
+                        <Text>{t('New')}
+                        </Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity
@@ -552,14 +477,16 @@ const ReferralForm: React.FC = () => {
                             />
                           )}
                         </View>
-                        <Text>Used</Text>
+                        <Text>{t('Used')}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>
                 </TouchableOpacity>
               </Modal>
 
-              <InputLabel>Vehicle Brand</InputLabel>
+              <InputLabel>{t('Vehicle_Brand')}
+              </InputLabel>
               <StyledInput 
                 placeholder="Select Vehicle Brand" 
                 value={vehicleBrand} 
@@ -568,7 +495,8 @@ const ReferralForm: React.FC = () => {
               />
               {!vehicleBrandValid && <ErrorText>Vehicle Brand invalid</ErrorText>}
 
-              <InputLabel>Vehicle Model</InputLabel>
+              <InputLabel>{t('Vehicle_Model')}
+              </InputLabel>
               <StyledInput 
                 placeholder="Select Vehicle Model" 
                 value={vehicleModel} 
@@ -578,7 +506,8 @@ const ReferralForm: React.FC = () => {
               {!vehicleModelValid && <ErrorText>Vehicle Model invalid</ErrorText>}
 
               {/* Campo para seleccionar dealerships */}
-              <InputLabel>Select Dealerships</InputLabel>
+              <InputLabel>{t('Dealerships')}
+              </InputLabel>
               <TouchableOpacity
                 style={{
                   borderColor: dealershipsValid ? colors.primary : 'red',
@@ -619,32 +548,38 @@ const ReferralForm: React.FC = () => {
                       padding: 10,
                     }}
                   >
-                    {dealerships.map(dealership => (
-                      <TouchableOpacity
-                        key={dealership}
-                        style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}
-                        onPress={() => toggleDealership(dealership)}
-                      >
-                        <View
-                          style={{
-                            height: 20,
-                            width: 20,
-                            borderRadius: 5,
-                            borderWidth: 1,
-                            borderColor: '#000',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            marginRight: 10,
-                            backgroundColor: selectedDealerships.includes(dealership) ? '#000' : '#fff',
-                          }}
-                        >
-                          {selectedDealerships.includes(dealership) && (
-                            <Ionicons name="checkmark" size={16} color="#fff" />
-                          )}
-                        </View>
-                        <Text>{dealership}</Text>
-                      </TouchableOpacity>
-                    ))}
+{dealerships.map(({ name, id }) => (
+  <TouchableOpacity
+    key={id}
+    style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}
+    onPress={() => toggleDealership(id)} // Guarda solo el ID
+  >
+    <View
+      style={{
+        height: 20,
+        width: 20,
+        borderRadius: 5,
+        borderWidth: 1,
+        borderColor: '#000',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 10,
+        backgroundColor: selectedDealerships.includes(id) ? '#000' : '#fff',
+      }}
+    >
+      {selectedDealerships.includes(id) && (
+        <Ionicons name="checkmark" size={16} color="#fff" />
+      )}
+    </View>
+    <View>
+      {/* Muestra el nombre del concesionario */}
+      <Text style={{ fontSize: 16, color: '#000' }}>{name}</Text>
+    </View>
+  </TouchableOpacity>
+))}
+
+
+
                   </View>
                 </TouchableOpacity>
               </Modal>

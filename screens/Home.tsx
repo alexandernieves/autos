@@ -10,6 +10,7 @@ import ReferralForm from './ReferralForm'; // Importamos el componente del formu
 import Dashboard from './Dashboard'; // Importamos el componente del dashboard
 import Profile from './Profile'; // Importamos el componente del perfil
 import Referrals from './Referrals'; // Comentamos el componente Referrals
+import { useTranslation } from 'react-i18next';
 
 const logoCabrera = require("../assets/cabrera.png");
 
@@ -17,6 +18,7 @@ const Home: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [activeView, setActiveView] = useState('dashboard'); // 'dashboard', 'referralForm', 'profile', 'referrals'
   const [fadeAnim] = useState(new Animated.Value(1)); // Valor de animación de opacidad
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchUsername = async () => {
@@ -66,7 +68,7 @@ const Home: React.FC = () => {
       <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 20 }}>
         <TouchableOpacity onPress={() => toggleView('dashboard')} style={{ marginHorizontal: 10 }}>
           <Text style={{ color: activeView === 'dashboard' ? '#002368' : '#ccc', fontSize: 18, fontWeight: 'bold' }}>
-            Dashboard
+          {t('Dashboard')}
           </Text>
         </TouchableOpacity>
         
@@ -75,7 +77,7 @@ const Home: React.FC = () => {
 
         <TouchableOpacity onPress={() => toggleView('referrals')} style={{ marginHorizontal: 10 }}>
           <Text style={{ color: activeView === 'referrals' ? '#002368' : '#ccc', fontSize: 18, fontWeight: 'bold' }}>
-            Referrals
+          {t('Referrals')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -94,7 +96,7 @@ const Home: React.FC = () => {
             <FontAwesome name="home" size={18} color={activeView === 'dashboard' ? "#FFF" : colors.primary} />
             {activeView === 'dashboard' && (
               <NavItemText active={true}>
-                Home
+                {t('Home')}
               </NavItemText>
             )}
           </NavItemContent>
@@ -104,7 +106,7 @@ const Home: React.FC = () => {
             <FontAwesome name="plus" size={18} color={activeView === 'referralForm' ? "#FFF" : colors.primary} />
             {activeView === 'referralForm' && (
               <NavItemText active={true}>
-                Add Refer
+                {t('Add_Refer')}
               </NavItemText>
             )}
           </NavItemContent>
@@ -114,7 +116,7 @@ const Home: React.FC = () => {
             <FontAwesome name="user" size={18} color={activeView === 'profile' ? "#FFF" : colors.primary} />
             {activeView === 'profile' && (
               <NavItemText active={true}>
-                Profile
+                {t('Profile')}
               </NavItemText>
             )}
           </NavItemContent>

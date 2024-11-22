@@ -6,6 +6,7 @@ import styled from 'styled-components/native';
 import { Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../App'; // Importa tu lista de rutas tipadas
+import { useTranslation } from 'react-i18next';
 
 // Styled Components
 const Container = styled.View`
@@ -164,6 +165,7 @@ export default function Referrals() {
   const itemsPerPage = 7; // Hasta 5 referidos por página
   const paginationAnimation = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchReferrals = async () => {
@@ -230,7 +232,8 @@ export default function Referrals() {
   return (
     <Container>
       <Header>
-        <Title>Referrals</Title>
+        <Title>{t('Referrals')}
+        </Title>
         <Ionicons name="filter-outline" size={24} color="#002368" />
       </Header>
 
@@ -241,7 +244,7 @@ export default function Referrals() {
 
       <ReferralsList>
         {currentData.length === 0 ? (
-          <NoReferralsText>You don't have referrals yet</NoReferralsText> // Mensaje si no hay referidos
+          <NoReferralsText>{t('No_Referrals_Yet')}</NoReferralsText> // Mensaje si no hay referidos
         ) : (
           currentData.map((referral, index) => (
             <ReferralCard key={index}>
@@ -292,7 +295,7 @@ export default function Referrals() {
       <Footer>
         <FooterButton onPress={() => navigation.navigate('Home')}>
           <Ionicons name="home-outline" size={28} color="#002368" />
-          <FooterButtonText>Home</FooterButtonText>
+          <FooterButtonText>{t('Home')}</FooterButtonText>
         </FooterButton>
         <FooterButton>
           <Ionicons name="add-outline" size={28} color="#002368" />
@@ -301,7 +304,8 @@ export default function Referrals() {
 
         <FooterButton>
           <Ionicons name="person-outline" size={28} color="#002368" />
-          <FooterButtonText>Profile</FooterButtonText>
+          <FooterButtonText>{t('Profile')}
+</FooterButtonText>
         </FooterButton>
       </Footer>
     </Container>

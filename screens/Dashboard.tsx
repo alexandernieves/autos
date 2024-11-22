@@ -62,7 +62,7 @@ const Dashboard: React.FC = () => {
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <ReferralContainer>
         <ReferralBoxLarge>
-          <BoxTitle>Total Referrals</BoxTitle>
+          <BoxTitle>{t('Total_Referrals')}</BoxTitle>
           <BoxIconAndValue>
             <FontAwesome name="users" size={50} color={colors.primary} />
             {loading ? (
@@ -75,22 +75,9 @@ const Dashboard: React.FC = () => {
 
         <RowContainer>
           <ReferralBoxSquare>
-            {/* conectar con contacted 221 */}
-
-            <SmallBoxTitle>Booked</SmallBoxTitle>
-            <BoxIconAndValue>
-              <FontAwesome name="check-circle" size={50} color={colors.primary} />
-              {loading ? (
-                <ActivityIndicator size="large" color={colors.primary} />
-              ) : (
-                <SmallBoxValue>{bookedReferrals}</SmallBoxValue> // Mostrar el número de referidos Booked
-              )}
-            </BoxIconAndValue>
-          </ReferralBoxSquare>
-
-          <ReferralBoxSquare>
-            {/* conectar con pending 220 */}
-            <SmallBoxTitle>{t('pending')}</SmallBoxTitle>
+               {/* conectar con pending 220 */}
+               <SmallBoxTitle>{t('pending')}</SmallBoxTitle>
+  
             <BoxIconAndValue>
               <FontAwesome name="hourglass-half" size={50} color={colors.primary} />
               {loading ? (
@@ -99,13 +86,31 @@ const Dashboard: React.FC = () => {
                 <SmallBoxValue>{pendingReferrals}</SmallBoxValue> // Mostrar el número de referidos Pending
               )}
             </BoxIconAndValue>
+        
+
+          </ReferralBoxSquare>
+
+          <ReferralBoxSquare>
+                   {/* conectar con contacted 221 */}
+
+                   <SmallBoxTitle>{t('Booked')}</SmallBoxTitle>
+
+            <BoxIconAndValue>
+              <FontAwesome name="check-circle" size={50} color={colors.primary} />
+              {loading ? (
+                <ActivityIndicator size="large" color={colors.primary} />
+              ) : (
+                <SmallBoxValue>{bookedReferrals}</SmallBoxValue> // Mostrar el número de referidos Booked
+              )}
+            </BoxIconAndValue>
+
           </ReferralBoxSquare>
         </RowContainer>
 
         <RowContainer>
           <ReferralBoxSquare>
             {/* conectar con sold 225 */}
-            <SmallBoxTitle>Sold</SmallBoxTitle>
+            <SmallBoxTitle>{t('Sold')}</SmallBoxTitle>
             <BoxIconAndValue>
               <FontAwesome name="smile-o" size={50} color={colors.primary} />
               {loading ? (
@@ -118,7 +123,7 @@ const Dashboard: React.FC = () => {
 
           <ReferralBoxSquare>
             {/* conectar con lost 226 */}
-            <SmallBoxTitle>Lost</SmallBoxTitle>
+            <SmallBoxTitle>{t('Lost')}</SmallBoxTitle>
             <BoxIconAndValue>
               <FontAwesome name="frown-o" size={50} color={colors.primary} />
               {loading ? (

@@ -177,7 +177,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
         <LogoutButtonContainer>
           <LogoutButton onPress={handleLogout}>
             <FontAwesome name="sign-out" size={24} color="#fff" />
-            <LogoutButtonText>{t('Log Out')}</LogoutButtonText>
+            <LogoutButtonText>{t('Log_Out')}</LogoutButtonText>
           </LogoutButton>
         </LogoutButtonContainer>
       </DrawerContentContainer>

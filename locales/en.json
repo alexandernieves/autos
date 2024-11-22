@@ -20,7 +20,57 @@
   "i_have_read_and_accept": "I have read and accept",
   "terms_and_conditions": "the terms and conditions",
   "and": "and",
-  "privacy_policies": "Privacy Policies"
+  "privacy_policies": "Privacy Policies",
+  "Notifications": "Notifications",
+  "Language": "Language",
+  "Hi": "Hi",
+  "Total_Referrals": "Total Referrals",
+  "Booked": "Booked",
+  "Sold": "Sold",
+  "Lost": "Lost",
+  "Dashboard": "Dashboard",
+  "Referrals": "Referrals",
+  "Home": "Home",
+  "Profile": "Profile",
+"Log_Out": "Log Out",
+"Enter_your_friends_details": "Enter your friend’s details below so the dealership can get in touch and assist them with finding their next vehicle.",
+"Referral_confirmation": "By submitting this referral, you confirm that you have their permission to share their contact details with us.",
+"Commission_steps": "You’re just a few steps away from earning a commission!",
+"First_Name": "First Name",
+"Last_Name": "Last Name",
+"Phone_Number": "Phone Number",
+"E_mail": "E-mail",
+"Vehicle_Status": "Vehicle Status",
+"Vehicle_Brand": "Vehicle Brand",
+"Vehicle_Model": "Vehicle Model",
+"Dealerships": "Dealerships",
+"New": "New",
+"Used": "Used",
+"Add_Refer": "Add Refer",
+"Referral_program_message": "Spread the word about our referral program by sharing the app with friends. While sharing the app is a great way to let them know, remember that to earn your commission, you need to enter their referral details directly.",
+"Important_referral_note": "Important: To earn a commission, make sure you submit your friend’s information through the referral form. Sharing the app alone will not qualify for payment.",
+"Share_Link": "Share Link",
+"No_Referrals_Yet": "You don't have referrals yet"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
