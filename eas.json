@@ -16,6 +16,12 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId" : "alexanderjesusnievesmontilva@gmail.com",
+        "ascAppId" : "6738582067",
+        "appleTeamId" : "2SBA5LH68C"
+      }
+    }
   }
 }

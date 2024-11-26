@@ -11804,14 +11804,14 @@ react-native-gesture-handler@^1.0.12, "react-native-gesture-handler@>= 1.0.0", r
     invariant "^2.2.4"
     prop-types "^15.7.2"
 
-react-native-get-random-values@*:
+react-native-get-random-values@*, react-native-get-random-values@^1.11.0:
   version "1.11.0"
   resolved "https://registry.npmjs.org/react-native-get-random-values/-/react-native-get-random-values-1.11.0.tgz"
   integrity sha512-4BTbDbRmS7iPdhYLRcz3PGFIpFJBwNZg9g42iwa2P6FOv9vZj/xJc678RZXnLNZzd0qd7Q3CCF6Yd+CU2eoXKQ==
   dependencies:
     fast-base64-decode "^1.0.0"
 
-react-native-gifted-chat@^2.4.0:
+react-native-gifted-chat@^2.6.4:
   version "2.6.4"
   resolved "https://registry.npmjs.org/react-native-gifted-chat/-/react-native-gifted-chat-2.6.4.tgz"
   integrity sha512-Ut31I1w6g4hG/iMyC1mVNVPZCNAUfijbJaEbRmKQnTPG+nAvYFje57OHr5coe9w+IBWsJKKoNvaI4h8w9Il5aQ==
