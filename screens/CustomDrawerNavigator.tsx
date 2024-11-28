@@ -13,6 +13,7 @@ import colors from '../colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next'; // Importar useTranslation
+import Setting from './Setting'; // Importamos la pantalla de ajustes
 
 const Drawer = createDrawerNavigator();
 type AdminScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Admin'>;
@@ -172,6 +173,15 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
             )}
 
           </DrawerItemContainer>
+          <DrawerItemStyled onPress={() => props.navigation.navigate('Setting')}>
+  <IconContainer>
+    <MaterialIcons name="settings" size={24} color={colors.primary} />
+  </IconContainer>
+  <DrawerLabel>{t('Setting')}</DrawerLabel>
+  <ArrowIcon name="chevron-right" size={24} color={colors.primary} />
+</DrawerItemStyled>
+
+
         </View>
 
         <LogoutButtonContainer>
@@ -192,7 +202,8 @@ export function CustomDrawerNavigator() {
       <Drawer.Screen name="Profile" component={Home} />
       <Drawer.Screen name="Settings" component={Home} />
       <Drawer.Screen name="QRScreen" component={QRScreen} /> 
-      <Drawer.Screen name="InviteFriendsScreen" component={InviteFriendsScreen} /> 
+      <Drawer.Screen name="Setting" component={Setting} />
+            <Drawer.Screen name="InviteFriendsScreen" component={InviteFriendsScreen} /> 
     </Drawer.Navigator>
   );
 }

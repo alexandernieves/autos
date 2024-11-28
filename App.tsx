@@ -26,6 +26,8 @@ import ActiveUsersTable from './screens/ActiveUsersTable';  // Importa el nuevo 
 import ReferralTable from './screens/ReferralTable';  // Importa el nuevo componente
 import './i18n'; // Importar el archivo de configuración de i18next
 import 'intl-pluralrules'; // Importar el polyfill para pluralización
+import Setting from './screens/Setting';
+
 
 import { CustomDrawerNavigator } from './screens/CustomDrawerNavigator';  // Asegúrate de importar el componente correctamente
 
@@ -52,6 +54,8 @@ export type RootStackParamList = {
   PreloaderCircle: { nextScreen: keyof RootStackParamList };
   SuccessAnimation: { nextScreen: keyof RootStackParamList };
   DrawerNavigator: undefined; // Asegúrate de que DrawerNavigator esté definido
+  Setting: undefined; // <--- Añade esta línea
+
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -85,6 +89,8 @@ function MainStackNavigator() {
       <Stack.Screen name="InviteFriendsScreen" component={InviteFriendsScreen} />
       <Stack.Screen name="SuccessAnimation" component={SuccessAnimation} />
       <Stack.Screen name="PreloaderCircle" component={PreloaderCircle} />
+      <Stack.Screen name="Setting" component={Setting} />
+
     </Stack.Navigator>
   );
 }
