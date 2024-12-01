@@ -62,13 +62,17 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 function MainStackNavigator() {
   return (
-    <Stack.Navigator
-      initialRouteName="Welcome"
-      screenOptions={{
-        headerShown: false,
-        ...TransitionPresets.FadeFromBottomAndroid,
-      }}
-    >
+
+<Stack.Navigator
+  initialRouteName="Welcome"
+  screenOptions={{
+    headerShown: false, // Desactiva encabezados para todas las pantallas
+    ...TransitionPresets.FadeFromBottomAndroid, // Transiciones
+  }}
+>
+
+  
+
       <Stack.Screen name="Welcome" component={Welcome} />
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="InactiveUsersTable" component={InactiveUsersTable} />
@@ -127,6 +131,9 @@ export default function App() {
 
     checkAuthentication();
   }, []);
+
+
+
 
   return (
     <NavigationContainer>

@@ -50,7 +50,15 @@
 "Referral_program_message": "Spread the word about our referral program by sharing the app with friends. While sharing the app is a great way to let them know, remember that to earn your commission, you need to enter their referral details directly.",
 "Important_referral_note": "Important: To earn a commission, make sure you submit your friend’s information through the referral form. Sharing the app alone will not qualify for payment.",
 "Share_Link": "Share Link",
-"No_Referrals_Yet": "You don't have referrals yet"
+"No_Referrals_Yet": "You don't have referrals yet",
+"delete_account": "Delete Account",
+"confirm_delete_account": "Are you sure you want to delete your account?",
+"cancel": "Cancel",
+"delete": "Delete"
+
+
+
+
 
 
 

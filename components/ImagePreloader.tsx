@@ -1,6 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { Animated, StyleSheet, Text, ActivityIndicator, View } from 'react-native';
+import { Dimensions, Animated, ActivityIndicator } from 'react-native';
 import styled from 'styled-components/native';
+
+// Obtener dimensiones de la pantalla
+const { width, height } = Dimensions.get('window');
+
+// Selección dinámica de imágenes según el dispositivo
+const getImages = () => {
+  if (width >= 1024) {
+    // iPad
+    return [
+      require('../assets/ram_2500_power_wagon_ipad.jpg'),
+      require('../assets/hyundai_elantra_ipad.jpg'),
+      require('../assets/ford_raptor_autumn_ipad.jpg'),
+      require('../assets/ford_raptor_forest_ipad.jpg'),
+      require('../assets/ram_2500_power_wagon_ipad.jpg'),
+    ];
+  } else {
+    // iPhone
+    return [
+      require('../assets/ram_2500_power_wagon.jpg'),
+      require('../assets/hyundai_elantra.jpg'),
+      require('../assets/ford_raptor_autumni.jpg'),
+      require('../assets/ford_raptor_foresty.jpg'),
+
+
+    ];
+  }
+};
+
+// Proporciones para tamaños responsivos
+const textFontSize = width * 0.045; // Tamaño del texto dinámico
+const spinnerBottomMargin = height * 0.08; // Margen inferior dinámico
 
 const ImagePreloaderContainer = styled.View`
   flex: 1;
@@ -11,7 +42,7 @@ const ImagePreloaderContainer = styled.View`
 
 const SpinnerContainer = styled.View`
   position: absolute;
-  bottom: 50px;
+  bottom: ${spinnerBottomMargin}px;
   align-items: center;
   flex-direction: row;
 `;
@@ -19,17 +50,15 @@ const SpinnerContainer = styled.View`
 const LoadingText = styled.Text`
   color: #fff;
   margin-left: 10px;
-  font-size: 18px;
+  font-size: ${textFontSize}px;
 `;
 
 const StyledImage = styled(Animated.Image)`
   width: 100%;
   aspect-ratio: 1.5; /* Ajusta la relación de aspecto según la imagen */
-  resize-mode: contain; /* Muestra toda la imagen sin recortar ni estirar */
+  resize-mode: contain;
   opacity: 0.75;
 `;
-
-
 
 const CustomSpinner = () => (
   <SpinnerContainer>
@@ -40,22 +69,15 @@ const CustomSpinner = () => (
 
 const ImagePreloader: React.FC<{ onFinish?: () => void }> = ({ onFinish }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const opacity = useState(new Animated.Value(0.75))[0]; // Incrementar opacidad a 75%
+  const opacity = useState(new Animated.Value(0.75))[0];
   const [hasPreloadFinished, setHasPreloadFinished] = useState(false);
-
-  const images = [
-    require('../assets/jeep_compass.jpg'),
-    require('../assets/hyundai_elantra.jpg'),
-    require('../assets/ford_raptor_autumn.jpg'),
-    require('../assets/ford_raptor_forest.jpg'),
-    require('../assets/ram_2500_power_wagon.jpg')
-  ];
+  const images = getImages();
 
   useEffect(() => {
     const preloaderTimeout = setTimeout(() => {
       Animated.timing(opacity, {
         toValue: 0,
-        duration: 500, // Suavizado al cambiar a la vista principal
+        duration: 500,
         useNativeDriver: true,
       }).start(() => {
         setHasPreloadFinished(true);
@@ -73,9 +95,9 @@ const ImagePreloader: React.FC<{ onFinish?: () => void }> = ({ onFinish }) => {
       if (currentImageIndex < images.length - 1) {
         setCurrentImageIndex(currentImageIndex + 1);
       } else {
-        setCurrentImageIndex(0); // Reinicia al principio de las imágenes
+        setCurrentImageIndex(0);
       }
-    }, 2000); // Mostrar cada imagen durante 3 segundos
+    }, 2000); // Mostrar cada imagen durante 2 segundos
 
     return () => clearTimeout(imageCycleTimeout);
   }, [currentImageIndex, images]);

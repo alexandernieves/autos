@@ -8,11 +8,13 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
+  Share,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Para almacenar y recuperar el token
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import styled from 'styled-components/native';
 import Header from './Header';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 
 const SettingContainer = styled.View`
   flex: 1;
@@ -29,14 +31,6 @@ const Footer = styled.View`
   padding: 10px;
 `;
 
-const Title = styled.Text`
-  font-size: 24px;
-  font-weight: bold;
-  color: #002368;
-  text-align: center;
-  margin-top: 10px;
-`;
-
 const DeleteButton = styled.TouchableOpacity`
   background-color: #ff4d4d;
   padding: 15px 30px;
@@ -50,20 +44,20 @@ const DeleteButtonText = styled.Text`
   text-align: center;
 `;
 
-const Setting: React.FC = ({ navigation }: any) => {
+
+const QRScreen: React.FC = ({ navigation }: any) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState<string | null>(null);
 
-  // Recuperar el token del almacenamiento seguro
   useEffect(() => {
     const getToken = async () => {
       try {
-        const storedToken = await AsyncStorage.getItem('jwtToken'); // Usa 'jwtToken' que se usa en Login.tsx
+        const storedToken = await AsyncStorage.getItem('jwtToken');
         if (storedToken) {
-          const tokenWithBearer = `Bearer ${storedToken}`; // Prefija con 'Bearer'
+          const tokenWithBearer = `Bearer ${storedToken}`;
           setToken(tokenWithBearer);
-          console.log('Token recuperado desde AsyncStorage:', tokenWithBearer); // Imprimir el token
+          console.log('Token recuperado desde AsyncStorage:', tokenWithBearer);
         } else {
           console.error('Token no encontrado en AsyncStorage');
         }
@@ -79,11 +73,11 @@ const Setting: React.FC = ({ navigation }: any) => {
       Alert.alert('Error', 'No se encontró el token de usuario.');
       return;
     }
-  
-    console.log('Token enviado al servidor:', token); // Imprime el token para verificar
-  
+
+    console.log('Token enviado al servidor:', token);
+
     setLoading(true);
-  
+
     try {
       const response = await fetch(
         'https://api.cabreraapp.alexcode.org/cabrera/delete-account',
@@ -91,15 +85,15 @@ const Setting: React.FC = ({ navigation }: any) => {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: token, // Enviar el token en el header
+            Authorization: token,
           },
         }
       );
-  
+
       if (response.ok) {
         Alert.alert('Cuenta Eliminada', 'Tu cuenta ha sido eliminada exitosamente.');
-        await AsyncStorage.removeItem('jwtToken'); // Eliminar el token
-        navigation.navigate('Welcome'); // Navegar a la pantalla de bienvenida
+        await AsyncStorage.removeItem('jwtToken');
+        navigation.navigate('Welcome');
       } else {
         const errorData = await response.json();
         Alert.alert('Error', errorData.message || 'No se pudo eliminar la cuenta.');
@@ -111,22 +105,59 @@ const Setting: React.FC = ({ navigation }: any) => {
       setLoading(false);
     }
   };
-  
-  
+
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
+
+  const navigateToHome = () => {
+    navigation.navigate('Home');
+  };
+
+  const openModal = () => {
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+  const { t } = useTranslation();
+
+
+  const shareLink = async () => {
+    try {
+      const result = await Share.share({
+        message: 'Check out this link: https://www.google.com',
+        url: 'https://www.google.com', // URL a compartir
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log('Shared with activity: ', result.activityType);
+        } else {
+          console.log('Link shared');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Share dismissed');
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.message);
+    }
+  };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f9f9f9' }}>
-      {/* Encabezado */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      {/* Encabezado personalizado */}
       <Header />
-
-      {/* Título debajo del encabezado */}
-      <Title>Settings</Title>
 
       {/* Contenedor principal */}
       <SettingContainer>
-        {/* Botón de Eliminar cuenta centrado */}
         <DeleteButton onPress={() => setModalVisible(true)}>
-          <DeleteButtonText>Delete Account</DeleteButtonText>
+          <DeleteButtonText>{t('delete_account')}
+          </DeleteButtonText>
         </DeleteButton>
       </SettingContainer>
 
@@ -146,13 +177,15 @@ const Setting: React.FC = ({ navigation }: any) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalText}>Are you sure you want to delete your account?</Text>
+            <Text style={styles.modalText}>{t('confirm_delete_account')}
+            </Text>
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={() => setModalVisible(false)}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelButtonText}>{t('cancel')}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.confirmButton}
@@ -162,13 +195,16 @@ const Setting: React.FC = ({ navigation }: any) => {
                 {loading ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={styles.confirmButtonText}>Delete</Text>
+                  <Text style={styles.confirmButtonText}>{t('delete')}</Text>
                 )}
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
+
+
+
     </SafeAreaView>
   );
 };
@@ -230,4 +266,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Setting;
+export default QRScreen;

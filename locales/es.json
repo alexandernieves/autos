@@ -50,7 +50,15 @@
 "Referral_program_message": "Difunde nuestro programa de referidos compartiendo la app con tus amigos. Aunque compartir la app es una excelente manera de informarlos, recuerda que para ganar tu comisión, debes ingresar sus datos de referencia directamente.",
 "Important_referral_note": "Importante: Para ganar una comisión, asegúrate de enviar la información de tu amigo a través del formulario de referidos. Solo compartir la app no calificará para el pago.",
 "Share_Link": "Compartir Enlace",
-"No_Referrals_Yet": "Aún no tienes referidos"
+"No_Referrals_Yet": "Aún no tienes referidos",
+"delete_account": "Eliminar cuenta",
+"confirm_delete_account": "¿Estás seguro de que deseas eliminar tu cuenta?",
+"cancel": "Cancelar",
+"delete": "Eliminar"
+
+
+
+
 
 
 
