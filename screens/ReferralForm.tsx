@@ -131,46 +131,8 @@ const ReferralForm: React.FC = () => {
   };
 
   // Función para validar los campos del segundo paso
-  const validateSecondStepInputs = () => {
-    let isValid = true;
-
-    if (!vehicleStatus) {
-      setVehicleStatusValid(false);
-      isValid = false;
-    } else {
-      setVehicleStatusValid(true);
-    }
-
-    if (!vehicleBrand) {
-      setVehicleBrandValid(false);
-      isValid = false;
-    } else {
-      setVehicleBrandValid(true);
-    }
-
-    if (!vehicleModel) {
-      setVehicleModelValid(false);
-      isValid = false;
-    } else {
-      setVehicleModelValid(true);
-    }
-
-    if (selectedDealerships.length === 0) {
-      setDealershipsValid(false);
-      isValid = false;
-    } else {
-      setDealershipsValid(true);
-    }
-
-    if (selectedDealer.length === 0) {
-      setDealerValid(false);
-      isValid = false;
-    } else {
-      setDealerValid(true);
-    }
-
-    return isValid;
-  };
+ 
+  
 
   // Función para manejar la selección de dealerships
   const toggleDealership = (dealership: string) => {
@@ -190,71 +152,76 @@ const ReferralForm: React.FC = () => {
 
   
   const saveReferral = async () => {
-    // Verificar que los inputs son válidos antes de continuar.
-    if (!validateSecondStepInputs()) return;
-    setLoading(true); // Mostrar el preloader
+    console.log('saveReferral fue llamado'); // Confirmar que la función se llama
+  
+    // Verificar que los inputs son válidos antes de continuar
 
+  
+    setLoading(true); // Mostrar el preloader
+  
     try {
-      // Obtener el token de autenticación del almacenamiento local.
+      // Obtener el token de autenticación del almacenamiento local
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) {
-        console.log('Error: No se encontró un token, por favor inicie sesión.');
+        console.log('No se encontró un token, por favor inicie sesión.');
         return;
       }
+      console.log('Token encontrado:', token);
   
       const decoded = decodeJWT(token);
       if (!decoded || !decoded.id) {
-        console.log('Error: No se pudo obtener el ID del usuario autenticado.');
+        console.log('No se pudo obtener el ID del usuario autenticado.');
         return;
       }
-      const fixedDate = '2024-10-21T12:00:00.000Z'; // Utiliza una fecha fija para coincidir en la prueba.
-      // Definir la fecha y el XML para enviar a DealerSocket.
-      const xmlBody = `<adf>
-      <prospect>
-        <id sequence="1" source="Vendor-lead-id"><![CDATA[Test-00001]]></id>
-        <requestdate><![CDATA[${fixedDate}]]></requestdate>
-        <customer>
-          <contact>
-            <name part="full"><![CDATA[${firstName} ${lastName}]]></name>
-            <phone><![CDATA[${phoneNumber}]]></phone>
-            <email><![CDATA[${email}]]></email>
-          </contact>
-          <vehicle>
-            <status><![CDATA[${vehicleStatus}]]></status>
-            <brand><![CDATA[${vehicleBrand}]]></brand>
-            <model><![CDATA[${vehicleModel}]]></model>
-          </vehicle>
-    <dealership><![CDATA[${selectedDealerships}]]></dealership> <!-- Envia solo el ID -->
-        </customer>
-        <vendor>
-          <id source="DealerID"><![CDATA[${selectedDealer}]]></id>
-          <vendorname><![CDATA[Cabrera Grupo]]></vendorname>
-        </vendor>
-        <provider>
-          <name part="full"><![CDATA[test]]></name>
-        </provider>
-      </prospect>
-    </adf>`.trim();
-
-      
-      const publicKey = "678";
-      const privateKey = "9DB91AB6-AD6F-440D-98A5-DC13ACAA3518";
+      console.log('Usuario autenticado con ID:', decoded.id);
   
-      // Generar el hash HMAC-SHA256 usando el XML y la clave secreta.
+      const fixedDate = '2024-10-21T12:00:00.000Z'; // Fecha fija para pruebas
+  
+      // Definir el XML para enviar a DealerSocket
+      const xmlBody = `<adf>
+        <prospect>
+          <id sequence="1" source="Vendor-lead-id"><![CDATA[Test-00001]]></id>
+          <requestdate><![CDATA[${fixedDate}]]></requestdate>
+          <customer>
+            <contact>
+              <name part="full"><![CDATA[${firstName} ${lastName}]]></name>
+              <phone><![CDATA[${phoneNumber}]]></phone>
+              <email><![CDATA[${email}]]></email>
+            </contact>
+            <vehicle>
+              <status><![CDATA[${vehicleStatus}]]></status>
+              <brand><![CDATA[${vehicleBrand}]]></brand>
+              <model><![CDATA[${vehicleModel}]]></model>
+            </vehicle>
+            <dealership><![CDATA[${selectedDealerships}]]></dealership>
+          </customer>
+          <vendor>
+            <id source="DealerID"><![CDATA[${selectedDealer}]]></id>
+            <vendorname><![CDATA[Cabrera Grupo]]></vendorname>
+          </vendor>
+          <provider>
+            <name part="full"><![CDATA[test]]></name>
+          </provider>
+        </prospect>
+      </adf>`.trim();
+  
+      console.log('XML generado:', xmlBody);
+  
+      // Generar el hash HMAC-SHA256 usando el XML y la clave secreta
+      const privateKey = "9DB91AB6-AD6F-440D-98A5-DC13ACAA3518";
       const hmac = CryptoJS.HmacSHA256(xmlBody, privateKey);
       const hash = CryptoJS.enc.Base64.stringify(hmac);
+      const publicKey = "678";
       const authHeader = `${publicKey}:${hash}`;
-  
-      console.log('Texto plano para el hash:', xmlBody);
       console.log('Hash generado:', hash);
       console.log('Authorization Header:', authHeader);
   
-      // Enviar los datos a DealerSocket.
+      // Enviar los datos a DealerSocket
       const dealerResponse = await fetch('https://oemwebsecure.dealersocket.com/DSOEMLead/US/DCP/ADF/1/SalesLead/223IIV3839', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/xml',
-            'Authorization': '861OST7574:967VHW1918'
+          'Content-Type': 'application/xml',
+          'Authorization': '861OST7574:967VHW1918',
         },
         body: xmlBody,
       });
@@ -263,25 +230,32 @@ const ReferralForm: React.FC = () => {
       console.log('Respuesta de DealerSocket:', dealerResponseText);
       console.log('DealerSocket Status:', dealerResponse.status);
   
-      // Enviar los datos a la base de datos en Azure, independientemente de la respuesta de DealerSocket.
+      if (dealerResponse.status !== 200) {
+        console.error('Error en la llamada a DealerSocket:', dealerResponseText);
+      }
+  
+      // Enviar los datos a la base de datos en Azure
+      const dbPayload = {
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: phoneNumber,
+        email: email,
+        vehicle_status: vehicleStatus,
+        vehicle_brand: vehicleBrand,
+        vehicle_model: vehicleModel,
+        dealerships: selectedDealerships,
+        referred_by_user_id: decoded.id,
+        status: 'Pending',
+      };
+      console.log('Datos enviados a la base de datos:', dbPayload);
+  
       const dbResponse = await fetch('https://api.cabreraapp.alexcode.org/cabrera/referrals', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `${token}`,
         },
-        body: JSON.stringify({
-          first_name: firstName,
-          last_name: lastName,
-          phone_number: phoneNumber,
-          email: email,
-          vehicle_status: vehicleStatus,
-          vehicle_brand: vehicleBrand,
-          vehicle_model: vehicleModel,
-          dealerships: selectedDealerships,
-          referred_by_user_id: decoded.id,
-          status: 'Pending',
-        }),
+        body: JSON.stringify(dbPayload),
       });
   
       const dbResponseJson = await dbResponse.json();
@@ -291,19 +265,18 @@ const ReferralForm: React.FC = () => {
       if (dbResponse.status === 201) {
         console.log('Datos guardados en la base de datos de Azure exitosamente.');
       } else {
-        console.log('Error al guardar los datos en la base de datos. Verifica los logs para más detalles.');
+        console.error('Error al guardar los datos en la base de datos:', dbResponseJson);
       }
   
       navigation.navigate('SuccessAnimation', { nextScreen: 'ReferralForm' });
     } catch (error) {
       console.error('Error al guardar el referral:', error);
     } finally {
-      setLoading(false); // Ocultar el preloader al finalizar
-    
-      // Si ocurre algún error, aún así mostrar el preloader.
-      navigation.navigate('SuccessAnimation', { nextScreen: 'ReferralForm' });
+      setLoading(false); // Ocultar el preloader
+      console.log('Finalizó el flujo de saveReferral');
     }
   };
+  
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
