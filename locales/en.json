@@ -54,7 +54,8 @@
 "delete_account": "Delete Account",
 "confirm_delete_account": "Are you sure you want to delete your account?",
 "cancel": "Cancel",
-"delete": "Delete"
+"delete": "Delete",
+"remember_me" : "remember me" 
 
 
 

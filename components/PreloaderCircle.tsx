@@ -3,76 +3,44 @@ import { View, Animated, StyleSheet } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 
 const PreloaderCircle = () => {
-  const fadeAnim1 = new Animated.Value(1);
-  const fadeAnim2 = new Animated.Value(1);
-  const fadeAnim3 = new Animated.Value(1);
+  const rotation = new Animated.Value(0);
   const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: { nextScreen: string } }, 'params'>>();
 
   useEffect(() => {
-    const animate = (anim: Animated.Value | Animated.ValueXY, delay: number) => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(anim, {
-            toValue: 0.5, // Opacidad más clara
-            duration: 500,
-            delay,
-            useNativeDriver: true,
-          }),
-          Animated.timing(anim, {
-            toValue: 1, // Opacidad completa
-            duration: 500,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    };
-
-    animate(fadeAnim1, 0);
-    animate(fadeAnim2, 200);
-    animate(fadeAnim3, 400);
+    // Animación de rotación
+    Animated.loop(
+      Animated.timing(rotation, {
+        toValue: 1,
+        duration: 2000,
+        useNativeDriver: true,
+      })
+    ).start();
 
     // Redirección a la pantalla especificada en `nextScreen`
     const timeoutId = setTimeout(() => {
-        // @ts-ignore
-      navigation.navigate(route.params.nextScreen);
+      navigation.navigate(route.params.nextScreen as never);
     }, 3000);
 
     return () => clearTimeout(timeoutId);
-  }, [navigation, route.params.nextScreen]);
+  }, [navigation, route.params.nextScreen, rotation]);
+
+  const rotateInterpolate = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   return (
     <View style={styles.container}>
       <Animated.View
-        style={[
-          styles.circle,
-          styles.circle1,
-          {
-            backgroundColor: '#002368',
-            opacity: fadeAnim1, // Animación de opacidad
-          },
-        ]}
-      />
-      <Animated.View
-        style={[
-          styles.circle,
-          styles.circle2,
-          {
-            backgroundColor: '#002368',
-            opacity: fadeAnim2, // Animación de opacidad
-          },
-        ]}
-      />
-      <Animated.View
-        style={[
-          styles.circle,
-          styles.circle3,
-          {
-            backgroundColor: '#002368',
-            opacity: fadeAnim3, // Animación de opacidad
-          },
-        ]}
-      />
+        style={{
+          transform: [{ rotate: rotateInterpolate }],
+        }}
+      >
+        <View style={styles.svgContainer}>
+          <View style={styles.circle} />
+        </View>
+      </Animated.View>
     </View>
   );
 };
@@ -82,30 +50,28 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'absolute',
-    top: 400,
-    left: 200,
   },
-  circle: {
-    position: 'absolute',
-    borderRadius: 50,
-  },
-  circle1: {
+  svgContainer: {
     width: 70,
     height: 70,
-    top: -70,
-    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  circle2: {
-    width: 50,
-    height: 50,
-    top: -50,
-    right: -55,
-  },
-  circle3: {
-    width: 30,
-    height: 30,
-    bottom: -25,
+  circle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 8,
+    borderColor: '#106ee8',
+    borderStyle: 'solid',
+    borderTopColor: 'transparent',
+    borderRightColor: '#106ee8',
+    borderBottomColor: '#106ee8',
+    borderLeftColor: '#106ee8',
+    shadowColor: '#106ee8',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
   },
 });
 

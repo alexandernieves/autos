@@ -21,7 +21,11 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
+import { CheckBox } from 'react-native-elements'; // Asegúrate de instalar esta dependencia o usa el que prefieras
+
 import { t } from "i18next";
+import UserSavedCard from "./UserSavedCard/UserSavedCard";
+import { useAppContext } from "./AppContext";
 
 const googleIcon = require("../assets/google.png");
 const background = require("../assets/volante_ford.jpg");
@@ -53,7 +57,7 @@ const CurvedContainer = styled.View`
 `;
 
 const Logo = styled.Image`
-  width: 250px;
+  width: 200px;
   height: 60px;
   resize-mode: contain;
   margin-top: 50px;
@@ -184,7 +188,7 @@ const ForgotPasswordText = styled.Text`
 const BackButton = styled.TouchableOpacity`
   position: absolute;
   top: 50px;
-  left: 20px;
+  left: 50px;
   background-color: #002368;
   border-radius: 50px;
   padding: 10px;
@@ -226,7 +230,10 @@ const validatePassword = (password: string) => {
   return password.length >= 6; // Requerir al menos 6 caracteres
 };
 
-export default function Login({ navigation }: LoginProps) { 
+
+
+
+export default function Login({ navigation }: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -234,33 +241,185 @@ export default function Login({ navigation }: LoginProps) {
   const [passwordError, setPasswordError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
+  const [isChecked, setIsChecked] = useState(false);
+  const { showCards, setShowCards } = useAppContext();
+  const [savedUsers, setSavedUsers] = useState<{
+    password: string; email: string; logo: string 
+}[]>([]);
+
 
   const emailShakeAnimation = useRef(new Animated.Value(0)).current;
   const passwordShakeAnimation = useRef(new Animated.Value(0)).current;
-
   const sliderAnimation = useRef(new Animated.Value(0)).current;
 
-  // Google Auth setup
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    iosClientId: '407124330321-ga4e8juvkib5smbjp3dh5pgecorm0f2f.apps.googleusercontent.com',
-    scopes: ['profile', 'email'],
-  });
 
+  // Cargar usuarios guardados y limpiar estados al volver
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadSavedUsers = async () => {
+        try {
+          const storedUsers = await AsyncStorage.getItem("savedUsers");
+          const users = storedUsers ? JSON.parse(storedUsers) : [];
+  
+          // Filtrar usuarios inválidos (sin email, por ejemplo)
+          const validUsers = users.filter((user: { email: any; }) => user.email);
+          setSavedUsers(validUsers);
+  
+          // Mostrar tarjetas si hay usuarios guardados
+          setShowCards(validUsers.length > 0);
+        } catch (error) {
+          console.error("Error al cargar usuarios guardados:", error);
+        }
+      };
+  
+      loadSavedUsers();
+      setEmail(""); // Limpiar el email
+      setPassword(""); // Limpiar la contraseña
+      setIsChecked(false); // Desactivar el checkbox
+    }, [])
+  );
+  
+  // Cargar usuarios guardados
   useEffect(() => {
-    if (response?.type === 'success' && response.authentication) {
-      const { accessToken } = response.authentication;
-      fetchUserInfo(accessToken);
+    const loadSavedUsers = async () => {
+      const users = JSON.parse((await AsyncStorage.getItem("savedUsers")) || "[]");
+      setSavedUsers(users);
+    };
+    loadSavedUsers();
+  }, []);
+
+  // Iniciar sesión desde la tarjeta
+  const handleLoginFromCard = async (email: string) => {
+    try {
+      const user = savedUsers.find((user) => user.email === email);
+  
+      if (user) {
+        setEmail(user.email);
+        setPassword(user.password || ""); // Establecer la contraseña si está disponible
+        await handleLogin();
+      } else {
+        console.error("Usuario no encontrado en los perfiles guardados.");
+      }
+    } catch (error) {
+      console.error("Error al iniciar sesión desde la tarjeta:", error);
     }
-  }, [response]);
+  };
+  
+  
   
 
-  const fetchUserInfo = async (token: string) => {
-    let response = await fetch('https://www.googleapis.com/userinfo/v2/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const user = await response.json();
-    await AsyncStorage.setItem('userInfo', JSON.stringify(user));
-    console.log('User Info:', user);
+  // Eliminar un usuario guardado
+  const handleRemoveUser = async (email: string) => {
+    try {
+      // Filtrar los usuarios eliminando el que coincide con el email
+      const users = savedUsers.filter((user) => user.email !== email);
+      await AsyncStorage.setItem("savedUsers", JSON.stringify(users));
+      setSavedUsers(users);
+  
+      // Si ya no hay usuarios guardados, mostrar el formulario de login
+      if (users.length === 0) {
+        setShowCards(false); // Cambia a false para mostrar el formulario de login
+      }
+  
+      // Limpiar campos del formulario
+      setEmail("");
+      setPassword("");
+      setIsChecked(false); // Desactivar el checkbox
+    } catch (error) {
+      console.error("Error al eliminar usuario guardado:", error);
+    }
+  };
+  
+  
+  const handleLogout = async () => {
+    setEmail("");
+    setPassword("");
+    setIsChecked(false); // Desactiva el checkbox
+    setShowCards(true); // Muestra las tarjetas
+  };
+  
+  // Guardar credenciales al activar "Guardar sesión"
+  const handleRememberMe = async () => {
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+  
+    if (!isEmailValid || !isPasswordValid) {
+      setEmailError(!isEmailValid);
+      setPasswordError(!isPasswordValid);
+  
+      if (!isEmailValid) shakeAnimation(emailShakeAnimation);
+      if (!isPasswordValid) shakeAnimation(passwordShakeAnimation);
+  
+      setIsChecked(false);
+      return;
+    }
+  
+    try {
+      const users = [...savedUsers];
+      const existingUser = users.find((user) => user.email === email);
+  
+      if (existingUser) {
+        existingUser.password = password; // Actualiza la contraseña si ya existe
+      } else {
+        users.push({ email, password, logo: "https://your-logo-url.com/logo.png" });
+      }
+  
+      await AsyncStorage.setItem("savedUsers", JSON.stringify(users));
+      setSavedUsers(users);
+    } catch (error) {
+      console.error("Error al guardar usuario:", error);
+    }
+  };
+  
+  
+
+  // Iniciar sesión
+  const handleLogin = async () => {
+    setEmailError(false);
+    setPasswordError(false);
+  
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password); // Asegúrate de validar la contraseña si la usas.
+  
+    if (!isEmailValid) {
+      setEmailError(true);
+      shakeAnimation(emailShakeAnimation);
+      return;
+    }
+  
+    if (!isPasswordValid) {
+      setPasswordError(true);
+      shakeAnimation(passwordShakeAnimation);
+      return;
+    }
+  
+    setIsLoading(true);
+    try {
+      const response = await axios.post("https://api.cabreraapp.alexcode.org/cabrera/login", {
+        email,
+        password, // Si no estás guardando contraseñas, envía un valor predeterminado o vacío.
+      });
+  
+      const data = response.data;
+  
+      if (data.token) {
+        // Guardar el token en AsyncStorage
+        await AsyncStorage.setItem("jwtToken", data.token);
+  
+        // Redirigir al usuario a la pantalla adecuada
+        navigation.navigate("PreloaderCircle", { nextScreen: "DrawerNavigator" });
+      } else {
+        console.error("No se recibió un token válido.");
+      }
+    } catch (error) {
+      console.error("Error al iniciar sesión:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
   };
 
   const shakeAnimation = (shakeAnimationRef: Animated.Value) => {
@@ -268,20 +427,13 @@ export default function Login({ navigation }: LoginProps) {
       Animated.timing(shakeAnimationRef, { toValue: 10, duration: 100, useNativeDriver: true }),
       Animated.timing(shakeAnimationRef, { toValue: -10, duration: 100, useNativeDriver: true }),
       Animated.timing(shakeAnimationRef, { toValue: 10, duration: 100, useNativeDriver: true }),
-      Animated.timing(shakeAnimationRef, { toValue: 0, duration: 100, useNativeDriver: true })
+      Animated.timing(shakeAnimationRef, { toValue: 0, duration: 100, useNativeDriver: true }),
     ]).start();
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
-      setEmail(""); 
-      setPassword(""); 
-    }, [])
-  );
-
   useEffect(() => {
     Animated.timing(sliderAnimation, {
-      toValue: isLogin ? 0 : 1, 
+      toValue: isLogin ? 0 : 1,
       duration: 300,
       useNativeDriver: false,
     }).start();
@@ -289,171 +441,128 @@ export default function Login({ navigation }: LoginProps) {
 
   const sliderPosition = sliderAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0%', '50%'],
+    outputRange: ["0%", "50%"],
   });
 
-  const handleLogin = async () => {
-    setEmailError(false);
-    setPasswordError(false);
-  
-    const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword(password);
-  
-    if (!isEmailValid) {
-      setEmailError(true);
-      shakeAnimation(emailShakeAnimation);
-    }
-  
-    if (!isPasswordValid) {
-      setPasswordError(true);
-      shakeAnimation(passwordShakeAnimation);
-    }
-  
-    if (isEmailValid && isPasswordValid) {
-      setIsLoading(true);
-      try {
-        const response = await axios.post('https://api.cabreraapp.alexcode.org/cabrera/login', {
-          email,
-          password
-        });
-  
-        const data = response.data;
-  
-        if (data.token) {
-          // Guardar el token en AsyncStorage
-          await AsyncStorage.setItem('jwtToken', data.token);
-          console.log("Token guardado correctamente en AsyncStorage");
-  
-          const token = await AsyncStorage.getItem('jwtToken');
-          if (token) {
-            const decodedToken = decodeJWT(token);
-            setIsLoading(false);
-  
-            if (decodedToken) {
-              const nextScreen = decodedToken.role === 'admin' ? 'Admin' : 'DrawerNavigator';
-              navigation.navigate('PreloaderCircle', { nextScreen }); // Redirige a PreloaderCircle con la pantalla siguiente
-            }
-          }
-        } else {
-          setIsLoading(false);
-          setEmailError(true);
-          setPasswordError(true);
-          shakeAnimation(emailShakeAnimation);
-          shakeAnimation(passwordShakeAnimation);
-        }
-      } catch (err) {
-        setIsLoading(false);
-        const error = err as any; // Conversión explícita
-        if (error.response && error.response.status === 401) {
-          // Error de credenciales incorrectas (usuario no encontrado o contraseña incorrecta)
-          setEmailError(true);
-          setPasswordError(true);
-          shakeAnimation(emailShakeAnimation);
-          shakeAnimation(passwordShakeAnimation);
-          // console.error("Credenciales incorrectas");
-        } else {
-          console.error("Error en el inicio de sesión:", error);
-        }
-      }
-    }
-  };
-  
-  
-
-  const togglePasswordVisibility = () => {
-    setPasswordVisible(!passwordVisible);
-  };
-
-  return (
-    <ImageBackground source={background} style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <CurvedContainer>
-        <Logo source={require('../assets/cabrera.png')} />
-      </CurvedContainer>
-      
-      <BackButton onPress={() => navigation.navigate('Welcome')}>
-        <Ionicons name="arrow-back" size={24} color="#fff" />
-      </BackButton>
-
-      <Card>
-        <ButtonOptionContainer>
-          <AnimatedSlider style={{ left: sliderPosition }} />
-
-          <ButtonOption onPress={() => setIsLogin(true)}>
-            <Text style={{ color: isLogin ? "#fff" : "#000", fontWeight: "bold" }}>{t('log_in')}</Text>
-          </ButtonOption>
-
-          <ButtonOption onPress={() => setIsLogin(false)}>
-            <Text style={{ color: !isLogin ? "#fff" : "#000", fontWeight: "bold" }}>{t('sign_up')}</Text>
-          </ButtonOption>
-        </ButtonOptionContainer>
-
-        {isLogin ? (
-          <>
-            {/* <SocialButton onPress={() => promptAsync()}>
-              <Image source={googleIcon} style={{ width: 20, height: 20, marginRight: 5 }} />
-              <Text style={{ fontSize: 14 }}>Continue with Google</Text>
-            </SocialButton> */}
-
-            <Animated.View style={{ transform: [{ translateX: emailShakeAnimation }] }}>
-              <InputContainer style={emailError && { borderColor: 'red', borderWidth: 1.5 }}>
-                <Icon name="mail-outline" size={24} color="#888" />
-                <StyledInput
-                    placeholder={t('enter_email_or_username_placeholder')}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  value={email}
-                  onChangeText={setEmail}
-                />
-              </InputContainer>
-              {emailError && <ErrorText>{t('email_invalid')}</ErrorText>}
-            </Animated.View>
-
-            <Animated.View style={{ transform: [{ translateX: passwordShakeAnimation }] }}>
-              <InputContainer style={passwordError && { borderColor: 'red', borderWidth: 1.5 }}>
-                <Icon name="lock-closed-outline" size={24} color="#888" />
-                <StyledInput
-                    placeholder={t('enter_password_placeholder')}
-                  autoCapitalize="none"
-                  secureTextEntry={!passwordVisible}
-                  value={password}
-                  onChangeText={setPassword}
-                />
-                <TouchableOpacity onPress={togglePasswordVisibility}>
-                  <Ionicons name={passwordVisible ? "eye-outline" : "eye-off-outline"} size={24} color="#888" />
-                </TouchableOpacity>
-              </InputContainer>
-              {passwordError && <ErrorText>{t('password_invalid')}</ErrorText>}
-            </Animated.View>
-
-            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-              <ForgotPasswordText>{t('forgot_password')}</ForgotPasswordText>
-            </TouchableOpacity>
-            <ButtonContainer>
-              <RoundedButton onPress={handleLogin}>
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <RoundedButtonText>{t('log_in')}</RoundedButtonText>
-                )}
-              </RoundedButton>
-            </ButtonContainer>
-          </>
-        ) : (
-          <Signup />
+ 
+    return (
+      <ImageBackground source={background} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <CurvedContainer>
+          <Logo source={require("../assets/cabrera.png")} />
+        </CurvedContainer>
+    
+        <BackButton onPress={() => navigation.navigate("Welcome")}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </BackButton>
+    
+        {showCards ? (
+      // Mostrar tarjetas si hay usuarios guardados
+      <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center" }}>
+        {savedUsers.map((user) => (
+          <UserSavedCard
+            key={user.email}
+            user={user}
+            onLogin={handleLoginFromCard}
+            onRemove={handleRemoveUser}
+          />
+        ))}
+      </View>
+      ) : (
+          <Card>
+            {/* Aquí está el formulario de inicio de sesión */}
+            <ButtonOptionContainer>
+              <AnimatedSlider style={{ left: sliderPosition }} />
+              <ButtonOption onPress={() => setIsLogin(true)}>
+                <Text style={{ color: isLogin ? "#fff" : "#000", fontWeight: "bold" }}>{t("log_in")}</Text>
+              </ButtonOption>
+              <ButtonOption onPress={() => setIsLogin(false)}>
+                <Text style={{ color: !isLogin ? "#fff" : "#000", fontWeight: "bold" }}>{t("sign_up")}</Text>
+              </ButtonOption>
+            </ButtonOptionContainer>
+    
+            {isLogin ? (
+              <>
+                {/* Input de email */}
+                <Animated.View style={{ transform: [{ translateX: emailShakeAnimation }] }}>
+                  <InputContainer style={emailError && { borderColor: "red", borderWidth: 1.5 }}>
+                    <Icon name="mail-outline" size={24} color="#888" />
+                    <StyledInput
+                      placeholder={t("enter_email_or_username_placeholder")}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      value={email}
+                      onChangeText={setEmail}
+                    />
+                  </InputContainer>
+                  {emailError && <ErrorText>{t("email_invalid")}</ErrorText>}
+                </Animated.View>
+    
+                {/* Input de contraseña */}
+                <Animated.View style={{ transform: [{ translateX: passwordShakeAnimation }] }}>
+                  <InputContainer style={passwordError && { borderColor: "red", borderWidth: 1.5 }}>
+                    <Icon name="lock-closed-outline" size={24} color="#888" />
+                    <StyledInput
+                      placeholder={t("enter_password_placeholder")}
+                      autoCapitalize="none"
+                      secureTextEntry={!passwordVisible}
+                      value={password}
+                      onChangeText={setPassword}
+                    />
+                    <TouchableOpacity onPress={togglePasswordVisibility}>
+                      <Ionicons name={passwordVisible ? "eye-outline" : "eye-off-outline"} size={24} color="#888" />
+                    </TouchableOpacity>
+                  </InputContainer>
+                  {passwordError && <ErrorText>{t("password_invalid")}</ErrorText>}
+                </Animated.View>
+    
+                {/* Checkbox y Forgot Password */}
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginVertical: 10 }}>
+                  <CheckBox
+                    title={t("remember_me")}
+                    checked={isChecked}
+                    onPress={async () => {
+                      setIsChecked(!isChecked);
+                      if (!isChecked) {
+                        await handleRememberMe();
+                      }
+                    }}
+                    containerStyle={{ backgroundColor: "transparent", borderWidth: 0, marginLeft: 0, padding: 0 }}
+                    textStyle={{ color: "gray" }}
+                  />
+                  <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
+                    <ForgotPasswordText style={{ color: "#000", textDecorationLine: "underline" }}>
+                      {t("forgot_password")}
+                    </ForgotPasswordText>
+                  </TouchableOpacity>
+                </View>
+    
+                {/* Botón de login */}
+                <ButtonContainer>
+                  <RoundedButton onPress={handleLogin}>
+                    {isLoading ? (
+                      <ActivityIndicator size="small" color="#FFF" />
+                    ) : (
+                      <RoundedButtonText>{t("log_in")}</RoundedButtonText>
+                    )}
+                  </RoundedButton>
+                </ButtonContainer>
+              </>
+            ) : (
+              <Signup />
+            )}
+    
+            <Footer>
+              <FooterText>{isLogin ? t("dont_have_account") : t("already_have_account")}</FooterText>
+              <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+                <SignUpText>{isLogin ? t("sign_up") : t("log_in")}</SignUpText>
+              </TouchableOpacity>
+            </Footer>
+          </Card>
         )}
+        <StatusBar barStyle="dark-content" />
+      </ImageBackground>
+    );
+    
 
-        <Footer>
-        <FooterText>
-  {isLogin ? t('dont_have_account') : t('already_have_account')}
-</FooterText>
-          <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-          <SignUpText>
-  {isLogin ? t('sign_up') : t('log_in')}
-</SignUpText>
-          </TouchableOpacity>
-        </Footer>
-      </Card>
-      <StatusBar barStyle="dark-content" />
-    </ImageBackground>
-  );
 }
+

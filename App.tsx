@@ -27,6 +27,7 @@ import ReferralTable from './screens/ReferralTable';  // Importa el nuevo compon
 import './i18n'; // Importar el archivo de configuración de i18next
 import 'intl-pluralrules'; // Importar el polyfill para pluralización
 import Setting from './screens/Setting';
+import { AppProvider } from "./screens/AppContext";
 
 
 import { CustomDrawerNavigator } from './screens/CustomDrawerNavigator';  // Asegúrate de importar el componente correctamente
@@ -136,6 +137,8 @@ export default function App() {
 
 
   return (
+    <AppProvider>
+
     <NavigationContainer>
       {isPreloading ? (
         <ImagePreloader onFinish={() => setIsPreloading(false)} />
@@ -145,5 +148,7 @@ export default function App() {
         <MainStackNavigator />  // Asegúrate de usar siempre el Stack Navigator aquí
       )}
     </NavigationContainer>
+    </AppProvider>
+
   );
 }

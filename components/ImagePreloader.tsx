@@ -1,117 +1,141 @@
-import React, { useState, useEffect } from 'react';
-import { Dimensions, Animated, ActivityIndicator } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  Dimensions,
+  ScrollView,
+  Animated,
+  View,
+  Text,
+} from 'react-native';
 import styled from 'styled-components/native';
+import ReactDOM from 'react-dom/client'; // Importa ReactDOM correctamente
 
-// Obtener dimensiones de la pantalla
 const { width, height } = Dimensions.get('window');
 
 // Selección dinámica de imágenes según el dispositivo
 const getImages = () => {
   if (width >= 1024) {
-    // iPad
     return [
       require('../assets/ram_2500_power_wagon_ipad.jpg'),
       require('../assets/hyundai_elantra_ipad.jpg'),
       require('../assets/ford_raptor_autumn_ipad.jpg'),
       require('../assets/ford_raptor_forest_ipad.jpg'),
-      require('../assets/ram_2500_power_wagon_ipad.jpg'),
     ];
   } else {
-    // iPhone
     return [
       require('../assets/ram_2500_power_wagon.jpg'),
       require('../assets/hyundai_elantra.jpg'),
       require('../assets/ford_raptor_autumni.jpg'),
       require('../assets/ford_raptor_foresty.jpg'),
-
-
     ];
   }
 };
 
-// Proporciones para tamaños responsivos
-const textFontSize = width * 0.045; // Tamaño del texto dinámico
-const spinnerBottomMargin = height * 0.08; // Margen inferior dinámico
-
-const ImagePreloaderContainer = styled.View`
+const ImageSliderContainer = styled.View`
   flex: 1;
-  justify-content: center;
-  align-items: center;
   background-color: #002368;
 `;
 
-const SpinnerContainer = styled.View`
-  position: absolute;
-  bottom: ${spinnerBottomMargin}px;
+const StyledImageBackground = styled.ImageBackground`
+  width: ${width}px;
+  height: ${height}px;
+`;
+
+const CircularIndicator = styled.View`
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  background-color: #ffffffaa;
+  justify-content: center;
   align-items: center;
-  flex-direction: row;
+  position: absolute;
+  bottom: 60px;
+  align-self: center;
 `;
 
-const LoadingText = styled.Text`
-  color: #fff;
-  margin-left: 10px;
-  font-size: ${textFontSize}px;
-`;
-
-const StyledImage = styled(Animated.Image)`
+const DotsContainer = styled.View`
+  position: absolute;
+  bottom: 20px;
   width: 100%;
-  aspect-ratio: 1.5; /* Ajusta la relación de aspecto según la imagen */
-  resize-mode: contain;
-  opacity: 0.75;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 `;
 
-const CustomSpinner = () => (
-  <SpinnerContainer>
-    <ActivityIndicator size="large" color="#fff" />
-    <LoadingText>Loading</LoadingText>
-  </SpinnerContainer>
-);
+const Dot = styled.View`
+  width: 15px;
+  height: 5px;
+  margin: 0 5px;
+  border-radius: 2.5px;
+  background-color: ${(props: { active: boolean }) => (props.active ? '#ffffff' : '#555555')};
+`;
 
-const ImagePreloader: React.FC<{ onFinish?: () => void }> = ({ onFinish }) => {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const opacity = useState(new Animated.Value(0.75))[0];
-  const [hasPreloadFinished, setHasPreloadFinished] = useState(false);
+interface ImageSliderProps {
+  onFinish?: () => void;
+}
+
+const ImageSlider: React.FC<ImageSliderProps> = ({ onFinish }) => {
   const images = getImages();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [opacity] = useState(new Animated.Value(0.75));
+  const [fadeOutOpacity] = useState(new Animated.Value(1));
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    const preloaderTimeout = setTimeout(() => {
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }).start(() => {
-        setHasPreloadFinished(true);
-        if (onFinish) {
-          onFinish();
-        }
-      });
-    }, 10000); // Mantener el preloader durante 10 segundos
-
-    return () => clearTimeout(preloaderTimeout);
-  }, [onFinish, opacity]);
-
-  useEffect(() => {
-    const imageCycleTimeout = setTimeout(() => {
-      if (currentImageIndex < images.length - 1) {
-        setCurrentImageIndex(currentImageIndex + 1);
+    const interval = setInterval(() => {
+      if (currentIndex < images.length - 1) {
+        scrollViewRef.current?.scrollTo({ x: (currentIndex + 1) * width, animated: true });
+        setCurrentIndex((prevIndex) => prevIndex + 1);
       } else {
-        setCurrentImageIndex(0);
+        clearInterval(interval);
+        Animated.sequence([
+          Animated.timing(fadeOutOpacity, {
+            toValue: 0,
+            duration: 400, // Reducción de la duración
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacity, {
+            toValue: 0,
+            duration: 300, // Reducción de la duración
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          if (onFinish) onFinish();
+        });
       }
-    }, 2000); // Mostrar cada imagen durante 2 segundos
+    }, 3000);
 
-    return () => clearTimeout(imageCycleTimeout);
-  }, [currentImageIndex, images]);
-
-  if (hasPreloadFinished) {
-    return null;
-  }
+    return () => clearInterval(interval);
+  }, [currentIndex, onFinish, opacity, fadeOutOpacity]);
 
   return (
-    <ImagePreloaderContainer>
-      <StyledImage source={images[currentImageIndex]} style={{ opacity }} />
-      <CustomSpinner />
-    </ImagePreloaderContainer>
+    <ImageSliderContainer>
+      <Animated.View style={{ flex: 1, opacity: fadeOutOpacity }}>
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          scrollEventThrottle={16}
+        >
+          {images.map((image, index) => (
+            <StyledImageBackground key={index} source={image} resizeMode="cover" />
+          ))}
+        </ScrollView>
+        <DotsContainer>
+          {images.map((_, index) => (
+            <Dot key={index} active={currentIndex === index} />
+          ))}
+        </DotsContainer>
+      </Animated.View>
+      <Animated.View style={{ opacity }}>
+        <CircularIndicator>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#002368' }}>
+            {currentIndex === images.length - 1 ? 'GO!' : images.length - currentIndex}
+          </Text>
+        </CircularIndicator>
+      </Animated.View>
+    </ImageSliderContainer>
   );
 };
 
-export default ImagePreloader;
+export default ImageSlider;

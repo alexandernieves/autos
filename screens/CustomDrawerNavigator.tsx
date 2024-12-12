@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next'; // Importar useTranslation
 import Setting from './Setting'; // Importamos la pantalla de ajustes
+import { useAppContext } from "./AppContext";
 
 const Drawer = createDrawerNavigator();
 type AdminScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Admin'>;
@@ -51,6 +52,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const heightAnim = useRef(new Animated.Value(0)).current;
+  const { setShowCards } = useAppContext(); // Obtén setShowCards del contexto
 
   useEffect(() => {
     const getUserData = async () => {
@@ -68,25 +70,38 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
     getUserData();
   }, [props]);
 
-  // Función para desloguear al usuario
-  const handleLogout = async () => {
+  const handleLogout = async (setShowCards: (value: boolean) => void, navigation: any) => {
     try {
-      const token = await AsyncStorage.getItem('jwtToken');
-      
+      // Obtener el token almacenado
+      const token = await AsyncStorage.getItem("jwtToken");
+  
+      // Si existe el token, realizar la petición de logout al servidor
       if (token) {
-        await fetch('https://api.cabreraapp.alexcode.org/cabrera/logout', {
-          method: 'POST',
+        await fetch("https://api.cabreraapp.alexcode.org/cabrera/logout", {
+          method: "POST",
           headers: {
             Authorization: `${token}`,
           },
         });
-        await AsyncStorage.removeItem('jwtToken');
-        navigation.navigate('Login');
       }
+  
+      // Eliminar solo el token, pero conservar los perfiles guardados
+      await AsyncStorage.removeItem("jwtToken");
+  
+      // Mostrar las tarjetas de perfiles guardados
+      setShowCards(true);
+  
+      // Navegar al login
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
     } catch (error) {
-      console.log('Error al hacer logout:', error);
+      console.error("Error al hacer logout:", error);
     }
   };
+  
+  
 
   const toggleLanguageMenu = () => {
     if (isLanguageMenuOpen) {
@@ -127,6 +142,15 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
               <EmailText>{email}</EmailText>
             </UserInfo>
           </DrawerHeader>
+
+
+          {/* Ítem Home */}
+          <DrawerItemStyled onPress={() => props.navigation.navigate("Home")}>
+            <IconContainer>
+              <MaterialIcons name="home" size={24} color={colors.primary} />
+            </IconContainer>
+            <DrawerLabel>{t('Home')}</DrawerLabel>
+          </DrawerItemStyled>
 
           <DrawerItemContainer> 
             <DrawerItemStyled onPress={() => props.navigation.navigate("QRScreen")}>
@@ -185,11 +209,11 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
         </View>
 
         <LogoutButtonContainer>
-          <LogoutButton onPress={handleLogout}>
-            <FontAwesome name="sign-out" size={24} color="#fff" />
-            <LogoutButtonText>{t('Log_Out')}</LogoutButtonText>
-          </LogoutButton>
-        </LogoutButtonContainer>
+      <LogoutButton onPress={() => handleLogout(setShowCards, navigation)}>
+        <FontAwesome name="sign-out" size={24} color="#fff" />
+        <LogoutButtonText>{t("Log_Out")}</LogoutButtonText>
+      </LogoutButton>
+    </LogoutButtonContainer>
       </DrawerContentContainer>
     </DrawerContentScrollView>
   );
