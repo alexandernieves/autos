@@ -151,7 +151,7 @@ const ReferralForm: React.FC = () => {
   };
 
   
-  const saveReferral = async () => {
+  const saveReferral = async () => { 
     console.log('saveReferral fue llamado'); // Confirmar que la función se llama
   
     // Verificar que los inputs son válidos antes de continuar

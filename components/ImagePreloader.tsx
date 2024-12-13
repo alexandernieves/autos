@@ -90,19 +90,19 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ onFinish }) => {
         Animated.sequence([
           Animated.timing(fadeOutOpacity, {
             toValue: 0,
-            duration: 400, // Reducción de la duración
+            duration: 300, // Reducción de la duración
             useNativeDriver: true,
           }),
           Animated.timing(opacity, {
             toValue: 0,
-            duration: 300, // Reducción de la duración
+            duration: 200, // Reducción de la duración
             useNativeDriver: true,
           }),
         ]).start(() => {
           if (onFinish) onFinish();
         });
       }
-    }, 3000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [currentIndex, onFinish, opacity, fadeOutOpacity]);

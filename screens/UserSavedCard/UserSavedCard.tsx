@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons"; // Iconos de la librería Ionicons
+import { t } from "i18next";
 
 interface UserSavedCardProps {
   user: {
@@ -34,7 +35,7 @@ const UserSavedCard: React.FC<UserSavedCardProps> = ({ user, onLogin, onRemove }
 
       {/* Botón de login */}
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginButtonText}>Log In</Text>
+        <Text style={styles.loginButtonText}>{t('log_in')}</Text>
       </TouchableOpacity>
     </View>
   );

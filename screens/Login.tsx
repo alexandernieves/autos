@@ -9,7 +9,8 @@ import {
   ImageBackground,
   ActivityIndicator,
   View,
-  Vibration
+  Vibration,
+  Alert
 } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -289,21 +290,7 @@ export default function Login({ navigation }: LoginProps) {
   }, []);
 
   // Iniciar sesión desde la tarjeta
-  const handleLoginFromCard = async (email: string) => {
-    try {
-      const user = savedUsers.find((user) => user.email === email);
-  
-      if (user) {
-        setEmail(user.email);
-        setPassword(user.password || ""); // Establecer la contraseña si está disponible
-        await handleLogin();
-      } else {
-        console.error("Usuario no encontrado en los perfiles guardados.");
-      }
-    } catch (error) {
-      console.error("Error al iniciar sesión desde la tarjeta:", error);
-    }
-  };
+
   
   
   
@@ -374,12 +361,12 @@ export default function Login({ navigation }: LoginProps) {
   
 
   // Iniciar sesión
-  const handleLogin = async () => {
+  const handleLogin = async (loginEmail: string = email, loginPassword: string = password) => {
     setEmailError(false);
     setPasswordError(false);
   
-    const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword(password); // Asegúrate de validar la contraseña si la usas.
+    const isEmailValid = validateEmail(loginEmail);
+    const isPasswordValid = validatePassword(loginPassword);
   
     if (!isEmailValid) {
       setEmailError(true);
@@ -396,8 +383,8 @@ export default function Login({ navigation }: LoginProps) {
     setIsLoading(true);
     try {
       const response = await axios.post("https://api.cabreraapp.alexcode.org/cabrera/login", {
-        email,
-        password, // Si no estás guardando contraseñas, envía un valor predeterminado o vacío.
+        email: loginEmail,
+        password: loginPassword,
       });
   
       const data = response.data;
@@ -406,7 +393,7 @@ export default function Login({ navigation }: LoginProps) {
         // Guardar el token en AsyncStorage
         await AsyncStorage.setItem("jwtToken", data.token);
   
-        // Redirigir al usuario a la pantalla adecuada
+        // Redirigir al usuario
         navigation.navigate("PreloaderCircle", { nextScreen: "DrawerNavigator" });
       } else {
         console.error("No se recibió un token válido.");
@@ -417,6 +404,40 @@ export default function Login({ navigation }: LoginProps) {
       setIsLoading(false);
     }
   };
+  
+  
+  const handleLoginFromCard = async (email: string) => {
+    try {
+      const user = savedUsers.find((user) => user.email === email);
+  
+      if (user) {
+        await handleLogin(user.email, user.password || ""); // Pasa los valores explícitamente
+      } else {
+        console.error("Usuario no encontrado en los perfiles guardados.");
+      }
+    } catch (error) {
+      console.error("Error al iniciar sesión desde la tarjeta:", error);
+    }
+  };
+  
+  const refreshToken = async () => {
+    const token = await AsyncStorage.getItem('jwtToken');
+  
+    try {
+      const response = await axios.post('https://api.cabreraapp.alexcode.org/cabrera/refresh-token', {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      if (response.data.token) {
+        await AsyncStorage.setItem('jwtToken', response.data.token);
+        console.log('Token renovado con éxito');
+      }
+    } catch (error) {
+      console.error('Error al renovar el token:', error);
+      Alert.alert('Error', 'Por favor, inicie sesión nuevamente.');
+    }
+  };
+  
   
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -538,13 +559,14 @@ export default function Login({ navigation }: LoginProps) {
     
                 {/* Botón de login */}
                 <ButtonContainer>
-                  <RoundedButton onPress={handleLogin}>
-                    {isLoading ? (
-                      <ActivityIndicator size="small" color="#FFF" />
-                    ) : (
-                      <RoundedButtonText>{t("log_in")}</RoundedButtonText>
-                    )}
-                  </RoundedButton>
+                <RoundedButton onPress={() => handleLogin()}>
+  {isLoading ? (
+    <ActivityIndicator size="small" color="#FFF" />
+  ) : (
+    <RoundedButtonText>{t("log_in")}</RoundedButtonText>
+  )}
+</RoundedButton>
+
                 </ButtonContainer>
               </>
             ) : (

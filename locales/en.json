@@ -55,8 +55,11 @@
 "confirm_delete_account": "Are you sure you want to delete your account?",
 "cancel": "Cancel",
 "delete": "Delete",
-"remember_me" : "remember me" 
-
+"remember_me" : "remember me" ,
+"Total_Earn": "Total Earn",
+"CARD":"CARD",
+"withdraw_profit":"withdraw profit",
+"Setting":"Setting"
 
 
 

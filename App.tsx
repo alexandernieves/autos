@@ -90,7 +90,13 @@ function MainStackNavigator() {
       <Stack.Screen name="Referrals" component={Referrals} />
       <Stack.Screen name="ReferralForm" component={ReferralForm} />
       <Stack.Screen name="Chat" component={Chat} />
-      <Stack.Screen name="QRScreen" component={QRScreen} />
+      <Stack.Screen
+  name="QRScreen"
+  component={QRScreen}
+  options={{
+    headerShown: false, // Esto oculta el encabezado
+  }}
+/>
       <Stack.Screen name="InviteFriendsScreen" component={InviteFriendsScreen} />
       <Stack.Screen name="SuccessAnimation" component={SuccessAnimation} />
       <Stack.Screen name="PreloaderCircle" component={PreloaderCircle} />

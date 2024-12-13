@@ -55,10 +55,11 @@
 "confirm_delete_account": "¿Estás seguro de que deseas eliminar tu cuenta?",
 "cancel": "Cancelar",
 "delete": "Eliminar",
-"remember_me" : "Guardar sesión"
-
-
-
+"remember_me" : "Guardar sesión",
+"Total_Earn" : "Ganancias",
+"CARD":"TARJETA",
+"withdraw_profit":"Retirar Ganancias",
+"Setting":"Configuracion"
 
 
 

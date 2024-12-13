@@ -1,61 +1,96 @@
 import React, { useState, useEffect } from "react";
-import { ScrollView, ActivityIndicator, Alert, Button } from "react-native";
+import { ScrollView, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
 import { FontAwesome } from '@expo/vector-icons';
 import styled from 'styled-components/native';
+import LinearGradient from 'react-native-linear-gradient';
 import colors from '../colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 
-
 const Dashboard: React.FC = () => {
+  const [balance, setBalance] = useState<number>(0);
+  const [loadingBalance, setLoadingBalance] = useState(false);
   const [totalReferrals, setTotalReferrals] = useState(0);
-  const [pendingReferrals, setPendingReferrals] = useState(0); // Estado para referidos pendientes
-  const [bookedReferrals, setBookedReferrals] = useState(0); // Estado para referidos Booked
-  const [closedReferrals, setClosedReferrals] = useState(0); // Estado para referidos Closed
-  const [lostReferrals, setLostReferrals] = useState(0); // Estado para referidos Lost
+  const [pendingReferrals, setPendingReferrals] = useState(0);
+  const [bookedReferrals, setBookedReferrals] = useState(0);
+  const [closedReferrals, setClosedReferrals] = useState(0);
+  const [lostReferrals, setLostReferrals] = useState(0);
   const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
 
-  // Función para obtener los datos desde el backend
-  useEffect(() => {
-    const fetchData = async (url: string, setState: React.Dispatch<React.SetStateAction<number>>, label: string) => {
-      try {
-        const token = await AsyncStorage.getItem('jwtToken');
-        if (!token) {
-          Alert.alert('Error', 'No se encontró un token, por favor inicie sesión.');
-          return;
-        }
+  const fetchBalance = async () => {
+    try {
+      setLoadingBalance(true);
+      const token = await AsyncStorage.getItem('jwtToken');
+      if (!token) {
+        Alert.alert('Error', 'No se encontró un token, por favor inicie sesión.');
+        return;
+      }
 
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `${token}`, // Enviar el token en los encabezados
-          },
-        });
+      const response = await fetch('https://api.cabreraapp.alexcode.org/cabrera/user/balance', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        const data = await response.json();
-        if (response.ok) {
-          setState(data[label]);
-        } else if (data.message === "jwt expired") {
+      const data = await response.json();
+      if (response.ok) {
+        setBalance(Number(data.balance));
+      } else {
+        if (data.message === "jwt expired") {
           Alert.alert('Error', 'La sesión ha expirado, por favor inicie sesión nuevamente.');
         } else {
-          Alert.alert('Error', data.message || `Error al obtener los referidos de ${label}.`);
+          Alert.alert('Error', data.message || 'Error al obtener el saldo.');
         }
-      } catch (error) {
-        console.error(`Error fetching ${label} referrals:`, error);
-        Alert.alert('Error', `Error al obtener los referidos de ${label}.`);
       }
-    };
+    } catch (error) {
+      console.error('Error al obtener el saldo:', error);
+      Alert.alert('Error', 'Error al obtener el saldo.');
+    } finally {
+      setLoadingBalance(false);
+    }
+  };
 
-    const fetchAllData = async () => {
-      await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count', setTotalReferrals, 'totalReferrals');
-      await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count-pending', setPendingReferrals, 'pendingReferrals');
-      await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count-booked', setBookedReferrals, 'bookedReferrals');
-      await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count-closed', setClosedReferrals, 'closedReferrals');
-      await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count-lost', setLostReferrals, 'lostReferrals');
-      setLoading(false);
-    };
+  const fetchData = async (url: string, setState: React.Dispatch<React.SetStateAction<number>>, label: string) => {
+    try {
+      const token = await AsyncStorage.getItem('jwtToken');
+      if (!token) {
+        Alert.alert('Error', 'No se encontró un token, por favor inicie sesión.');
+        return;
+      }
 
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setState(data[label]);
+      } else if (data.message === "jwt expired") {
+        Alert.alert('Error', 'La sesión ha expirado, por favor inicie sesión nuevamente.');
+      } else {
+        Alert.alert('Error', data.message || `Error al obtener los referidos de ${label}.`);
+      }
+    } catch (error) {
+      console.error(`Error fetching ${label} referrals:`, error);
+      Alert.alert('Error', `Error al obtener los referidos de ${label}.`);
+    }
+  };
+
+  const fetchAllData = async () => {
+    await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count', setTotalReferrals, 'totalReferrals');
+    await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count-pending', setPendingReferrals, 'pendingReferrals');
+    await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count-booked', setBookedReferrals, 'bookedReferrals');
+    await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count-closed', setClosedReferrals, 'closedReferrals');
+    await fetchData('https://api.cabreraapp.alexcode.org/cabrera/referrals/count-lost', setLostReferrals, 'lostReferrals');
+    setLoading(false);
+  };
+
+  useEffect(() => {
     fetchAllData();
+    fetchBalance();
   }, []);
 
   return (
@@ -68,72 +103,91 @@ const Dashboard: React.FC = () => {
             {loading ? (
               <ActivityIndicator size="large" color={colors.primary} />
             ) : (
-              <BoxValue>{totalReferrals === 0 ? "0" : totalReferrals}</BoxValue>
+              <BoxValue>{totalReferrals}</BoxValue>
             )}
           </BoxIconAndValue>
         </ReferralBoxLarge>
 
         <RowContainer>
           <ReferralBoxSquare>
-               {/* conectar con pending 220 */}
-               <SmallBoxTitle>{t('pending')}</SmallBoxTitle>
-  
+            <SmallBoxTitle>{t('Pending')}</SmallBoxTitle>
             <BoxIconAndValue>
               <FontAwesome name="hourglass-half" size={50} color={colors.primary} />
               {loading ? (
                 <ActivityIndicator size="large" color={colors.primary} />
               ) : (
-                <SmallBoxValue>{pendingReferrals}</SmallBoxValue> // Mostrar el número de referidos Pending
+                <SmallBoxValue>{pendingReferrals}</SmallBoxValue>
               )}
             </BoxIconAndValue>
-        
-
           </ReferralBoxSquare>
 
           <ReferralBoxSquare>
-                   {/* conectar con contacted 221 */}
-
-                   <SmallBoxTitle>{t('Booked')}</SmallBoxTitle>
-
+            <SmallBoxTitle>{t('Booked')}</SmallBoxTitle>
             <BoxIconAndValue>
               <FontAwesome name="check-circle" size={50} color={colors.primary} />
               {loading ? (
                 <ActivityIndicator size="large" color={colors.primary} />
               ) : (
-                <SmallBoxValue>{bookedReferrals}</SmallBoxValue> // Mostrar el número de referidos Booked
+                <SmallBoxValue>{bookedReferrals}</SmallBoxValue>
               )}
             </BoxIconAndValue>
-
           </ReferralBoxSquare>
         </RowContainer>
 
         <RowContainer>
           <ReferralBoxSquare>
-            {/* conectar con sold 225 */}
             <SmallBoxTitle>{t('Sold')}</SmallBoxTitle>
             <BoxIconAndValue>
               <FontAwesome name="smile-o" size={50} color={colors.primary} />
               {loading ? (
                 <ActivityIndicator size="large" color={colors.primary} />
               ) : (
-                <SmallBoxValue>{closedReferrals}</SmallBoxValue> // Mostrar el número de referidos Closed
+                <SmallBoxValue>{closedReferrals}</SmallBoxValue>
               )}
             </BoxIconAndValue>
           </ReferralBoxSquare>
 
           <ReferralBoxSquare>
-            {/* conectar con lost 226 */}
             <SmallBoxTitle>{t('Lost')}</SmallBoxTitle>
             <BoxIconAndValue>
               <FontAwesome name="frown-o" size={50} color={colors.primary} />
               {loading ? (
                 <ActivityIndicator size="large" color={colors.primary} />
               ) : (
-                <SmallBoxValue>{lostReferrals}</SmallBoxValue> // Mostrar el número de referidos Lost
+                <SmallBoxValue>{lostReferrals}</SmallBoxValue>
               )}
             </BoxIconAndValue>
           </ReferralBoxSquare>
         </RowContainer>
+
+        <CardContainer>
+          <LinearGradient
+            colors={['#1f1f1f', '#2a2a2a']}
+            style={{
+              borderRadius: 15,
+              padding: 20,
+            }}
+          >
+            <CardTitle>CABRERA</CardTitle>
+            <CardSubtitle>{t('CARD')}</CardSubtitle>
+            <BalanceContainer>
+              <BalanceText>
+                {loadingBalance ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  `$${balance.toFixed(2)}`
+                )}
+              </BalanceText>
+              <TouchableOpacity onPress={fetchBalance}>
+                <FontAwesome name="refresh" size={20} color="#FFF" style={{ marginLeft: 10 }} />
+              </TouchableOpacity>
+            </BalanceContainer>
+            <WithdrawButton>
+              <WithdrawButtonText>{t('withdraw_profit')}</WithdrawButtonText>
+            </WithdrawButton>
+          </LinearGradient>
+        </CardContainer>
+        <BottomMargin />
       </ReferralContainer>
     </ScrollView>
   );
@@ -141,7 +195,8 @@ const Dashboard: React.FC = () => {
 
 export default Dashboard;
 
-// Estilos personalizados
+
+// Estilos
 const ReferralContainer = styled.View`
   padding: 20px;
   flex-grow: 1;
@@ -204,4 +259,66 @@ const SmallBoxValue = styled.Text`
   font-weight: bold;
   color: ${colors.primary};
   margin-left: 10px;
+`;
+
+const CardContainer = styled.View`
+  width: 95%;
+  margin: 20px auto;
+  border-radius: 15px;
+  shadow-color: #000;
+  shadow-opacity: 0.2;
+  shadow-radius: 5px;
+  elevation: 4;
+`;
+
+const CardTitle = styled.Text`
+  color: #ffffff;
+  font-size: 30px;
+  font-weight: bold;
+  position: absolute;
+  top: 15px;
+  left: 15px;
+`;
+
+const CardSubtitle = styled.Text`
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+  position: absolute;
+  top: 50px;
+  left: 15px;
+`;
+
+const BalanceContainer = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+`;
+
+const BalanceText = styled.Text`
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: bold;
+`;
+
+const WithdrawButton = styled.TouchableOpacity`
+  background-color: #ffffff;
+  padding: 10px 15px;
+  border-radius: 10px;
+  align-items: center;
+  margin-top: 100px;
+  align-self: flex-end;
+`;
+
+const WithdrawButtonText = styled.Text`
+  color: #1f1f1f;
+  font-size: 14px;
+  font-weight: bold;
+`;
+
+const BottomMargin = styled.View`
+  height: 50px; /* Margen adicional */
 `;
