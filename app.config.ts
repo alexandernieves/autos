@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "cabrera autos",
     slug: "Loquiereslotenemos",
-    version: "1.0.1",
+    version: "1.0.2",
     orientation: "portrait",
     icon: "./assets/icon.png",
     splash: {
